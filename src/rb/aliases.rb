@@ -2,13 +2,14 @@ require 'set'
 
 class Aliases 
   @@aliases = { }
+  @@aliases_filepath = File.expand_path(File.dirname(__FILE__) + "/../data/aliases.csv")
 
   def self.aliases
     @@aliases
   end
 
   def self.load_aliases()
-    CSV.foreach(File.dirname(__FILE__) + "/aliases.csv") do |row|
+    CSV.foreach(@@aliases_filepath) do |row|
         processing_aliases = true
 
         row.each_index do |i|
@@ -56,7 +57,7 @@ class Aliases
   end
 
   def self.write_aliases()
-    CSV.open('aliases.csv', 'w') do |csv|
+    CSV.open(@@aliases_filepath, 'w') do |csv|
       @@aliases.each do |key, value|
         row = []
         row.push(key)
