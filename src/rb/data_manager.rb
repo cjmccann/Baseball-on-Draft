@@ -1,14 +1,49 @@
-class GlobalStats
-  attr_accessor :averages
+class DataManager
+  attr_accessor :parser, :batters, :pitchers, :averages
 
-  def initialize( )
+  def initialize(parser)
     @averages = { }
     @stddevs = { :bat => { }, :pit => { } }
+
+    @parser = parser
+    @batters = parser.batters
+    @pitchers = parser.pitchers
+
+    compute_weighted_means(@batters)
+    compute_weighted_means(@pitchers)
+
+    # uses mean IP to determine SP/RP
+    assign_all_pitcher_pos(@pitchers)
+
+    compute_average_weighted_means(:bat, @batters)
+    compute_average_weighted_means(:pit, @pitchers)
+
+    compute_all_stddevs(:bat, @batters)
+    compute_all_stddevs(:pit, @pitchers)
+
+    compute_all_zscores(:bat, @batters)
+    compute_all_zscores(:pit, @pitchers)
+
+    compute_all_percentiles(:bat, @batters)
+    compute_all_percentiles(:pit, @pitchers)
   end
 
   def compute_weighted_means(players)
     players.each do |name, player|
       means = { }
+      model_weights = ModelData.model_weights.clone
+
+      player.stats.each do |model, set|
+        if set.empty?
+          weight_to_redist = model_weights[model]
+
+          model_weights.delete(model)
+
+          model_weights.keys.each do |model_b|
+            model_weights[model_b] += (weight_to_redist / model_weights.length)
+          end
+        end
+      end
 
       player.stats.each do |model, set|
         set.each do |category, stat|
@@ -17,7 +52,7 @@ class GlobalStats
               means[category] = 0.0
             end
 
-            means[category] += stat.to_f * ModelData.model_weights[model]
+            means[category] += stat.to_f * model_weights[model]
           end
         end
       end
@@ -74,6 +109,12 @@ class GlobalStats
   def compute_all_percentiles(type, players)
     players.each do |name, player|
       player.compute_percentile()
+    end
+  end
+
+  def assign_all_pitcher_pos(players)
+    players.each do |name, player|
+      player.assign_pitcher_pos()
     end
   end
 end

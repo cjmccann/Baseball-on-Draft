@@ -1,8 +1,10 @@
 class Player
-  attr_accessor :name, :value, :stats
+  attr_accessor :name, :value, :stats, :position, :type
 
   def initialize()
     @name = nil
+    @position = nil
+    @type = nil
 
     @stats = {
       :steamer => { },
@@ -41,6 +43,7 @@ class Player
 
   def process_data(data, model, type)
     curr_model = ModelData.models[model][type]
+    @type = type
 
     if model == :steamer || model == :depthcharts
       @name = data[curr_model[:name]]
@@ -48,8 +51,20 @@ class Player
       @name = "BP-ONLY"
     end
 
+    if model == :pecota && type == :bat
+      @position = data[curr_model[:pos]].strip
+    end
+
     curr_model.each do |key, value|
       @stats[model][key] = data[value]
+    end
+  end
+
+  def assign_pitcher_pos()
+    if @stats[:means][:ip] > 80
+      @position = "SP"
+    else
+      @position = "RP"
     end
   end
 

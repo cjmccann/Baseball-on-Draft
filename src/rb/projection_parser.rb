@@ -75,7 +75,7 @@ class ProjectionParser
     hash = { }
 
     players.each do |name, value|
-      hash[name] = value.stats
+      hash[name] = { "position" => value.position, "type" => value.type, "stats" => value.stats }
     end
 
     return JSON.pretty_generate(hash)
@@ -86,7 +86,9 @@ class ProjectionParser
 
     json.each do |name, value|
       player = Player.new()
-      player.process_data_from_json(name, value)
+      player.process_data_from_json(name, value["stats"])
+      player.position = value["position"]
+      player.type = value["type"].to_sym
       players[name] = player if player.is_valid?
     end
 
@@ -101,7 +103,7 @@ class ProjectionParser
     end
 
     skip_header = true
-    CSV.foreach(filename) do |row|
+    CSV.foreach(filename, skip_blanks: true) do |row|
       if skip_header
         skip_header = false
         next
@@ -125,9 +127,11 @@ class ProjectionParser
       end
 
       if result.empty?
-        player = Player.new()
-        player.process_data(row, model, type)
-        players[player.name] = player if player.is_valid?
+        unless empty_row?(row)
+          player = Player.new()
+          player.process_data(row, model, type)
+          players[player.name] = player if player.is_valid?
+        end
       else
         result.each do |key, cur_player|
           if model != :pecota
@@ -165,6 +169,18 @@ class ProjectionParser
     end
 
     store_file_info(filename, players)
+  end
+
+  def empty_row?(row)
+    is_empty = true
+
+    row.each do |elem|
+      if !elem.nil?
+        is_empty = false
+      end
+    end
+
+    is_empty
   end
 
   def store_file_info(filename, players)
