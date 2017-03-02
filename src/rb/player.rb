@@ -5,6 +5,7 @@ class Player
     @name = nil
     @position = nil
     @type = nil
+    @drafted = false
 
     @stats = {
       :steamer => { },
@@ -121,5 +122,13 @@ class Player
     sum += 0.5
     return sum * 100
     # 1-sum
+  end
+
+  def is_drafted?
+    @drafted
+  end
+
+  def set_drafted
+    @drafted = true
   end
 end
