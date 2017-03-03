@@ -1,10 +1,9 @@
 require 'deep_clone'
 
 class Team
-  attr_accessor :data_manager, :batters, :pitchers, :batter_slots, :pitcher_slots, :team_percentiles
+  attr_accessor :batters, :pitchers, :batter_slots, :pitcher_slots, :team_percentiles
   
-  def initialize(data_manager)
-    @data_manager = data_manager
+  def initialize()
     @batters = { }
     @pitchers = { }
     @team_percentiles = { :bat => { }, :pit => { } }
@@ -187,5 +186,15 @@ class Team
     end
 
     return nil
+  end
+
+  def print_detailed()
+    puts @batters
+    puts @pitchers
+  end
+
+  def print_basic()
+    puts @batters
+    puts @pitchers
   end
 end

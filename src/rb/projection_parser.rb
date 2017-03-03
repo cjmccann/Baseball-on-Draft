@@ -52,6 +52,8 @@ class ProjectionParser
       end
     end
 
+    clean_player_lists()
+
     write_parser_data()
   end
 
@@ -185,5 +187,10 @@ class ProjectionParser
 
   def store_file_info(filename, players)
     @file_digests[filename] = Digest::MD5.file(filename)
+  end
+
+  def clean_player_lists()
+    @batters.delete("BP-ONLY")
+    @pitchers.delete("BP-ONLY")
   end
 end

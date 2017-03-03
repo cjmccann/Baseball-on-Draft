@@ -131,4 +131,23 @@ class Player
   def set_drafted
     @drafted = true
   end
+
+  def matches_position?(pos)
+    return false if pos.nil?
+    return true if @position == pos || pos == "UTIL"
+
+    if pos == "CI"
+      return true if @position == "1B" || @position == "3B"
+    end
+
+    if pos == "MI"
+      return true if @position == "2B" || @position == "SS"
+    end
+
+    if pos == "OF"
+      return true if @position == "LF" || @position == "CF" || @position == "RF"
+    end
+
+    return false
+  end
 end
