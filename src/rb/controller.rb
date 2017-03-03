@@ -3,11 +3,11 @@ require_relative 'data_manager'
 require_relative 'team'
 
 class Controller
-  attr_accessor :options, :team, :other_teams, :batters, :pitchers, :all_players, :league_size
+  attr_accessor :options, :data_manager, :team, :other_teams, :batters, :pitchers, :all_players, :league_size
 
   def initialize(options)
     parser = ProjectionParser.new(options)
-    DataManager.new(parser)
+    @data_manager = DataManager.new(parser)
 
     @team = Team.new()
     @batters = parser.batters
@@ -35,16 +35,20 @@ class Controller
         puts "What do you want to do? (Input number to select.)"
         puts "  1. Add a player to your team."
         puts "  2. Add a player to another team."
-        puts "  3. Display top 25 recommended players."
-        puts "  4. Display top 25 recommended players for position."
+        puts "  3. Display top 25 available players."
+        puts "  4. Display top 25 available players for position."
         puts "  5. Display my team."
         puts "  6. Display other team."
         puts "  7. Display all other teams."
+        puts "  8. Display all drafted players."
+        puts "  9. binding.pry"
         puts "  0. Exit."
         puts "-------------------------------------------------"
-
         print ">>> "
+
         player_added = handle_response(gets.chomp)
+
+        @data_manager.update_cumulative_stats if player_added
       end
     end
   end
@@ -93,6 +97,9 @@ class Controller
       false 
     when "7"
       @other_teams.each { |team| team.print_basic() }
+      false
+    when "9"
+      binding.pry
       false
     when "0"
       exit
@@ -170,7 +177,7 @@ class Controller
     puts "Player | Cumulative percentile difference"
     puts "-----------------------------------------"
     while i < n
-      puts "> " + players[i][0] + " | " + players[i][1].to_s
+      puts " #{(i + 1).to_s}. " + players[i][0] + " | " + players[i][1].to_s
       i += 1
     end
   end

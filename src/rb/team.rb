@@ -13,10 +13,10 @@ class Team
 
   def store_league_settings
     @batter_slots = { "C" => 2, "1B" => 1, "2B" => 1, "3B" => 1, "SS" => 1,
-                      "CI" => 1, "MI" => 1, "LF" => 1, "CF" => 1, "RF" => 1,
-                      "OF" => 2, "UTIL" => 2 }
+                      "LF" => 0, "CF" => 0, "RF" => 0,
+                      "CI" => 1, "MI" => 1, "OF" => 5, "UTIL" => 2 }
 
-    @pitcher_slots = { "SP" => 4, "RP" => 3, "P" => 3 }
+    @pitcher_slots = { "SP" => 4, "RP" => 2, "P" => 4 }
 
     @target_stats = {
       :bat => [:r, :hr, :rbi, :sb, :avg],
