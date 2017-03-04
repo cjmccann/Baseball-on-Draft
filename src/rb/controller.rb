@@ -1,3 +1,4 @@
+require_relative 'league_settings'
 require_relative 'projection_parser'
 require_relative 'data_manager'
 require_relative 'team'
@@ -6,6 +7,7 @@ class Controller
   attr_accessor :options, :data_manager, :team, :other_teams, :batters, :pitchers, :all_players, :league_size
 
   def initialize(options)
+    LeagueSettings.load_default_settings()
     parser = ProjectionParser.new(options)
     @data_manager = DataManager.new(parser)
 
@@ -42,11 +44,11 @@ class Controller
         puts "  5. Display top 25 available players. (Absolute)"
         puts "  6. Display top 25 available players for position. (Absolute)"
         puts "  7. Display top 25 available players. (Position adjusted)"
-        puts "  8. Display my team."
+        puts "  8. Display top 25 available players. (Position adjusted, with remaining pos slot weighting.)"
         puts "  X. Display other team."
         puts "  X. Display all other teams."
-        puts "  8. Display all drafted players."
-        puts "  9. binding.pry"
+        puts "  9. Display all drafted players."
+        puts "  10. binding.pry"
         puts "  0. Exit."
         puts "-------------------------------------------------"
         print ">>> "
@@ -110,9 +112,13 @@ class Controller
       print_players(sorted_players, 25)
       false
     when "8"
-      @team.print_detailed()
+      sorted_players = @data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots(nil, @team)
+      print_players(sorted_players, 25)
       false
     when "9"
+      @team.print_detailed()
+      false
+    when "10"
       binding.pry
       false
     when "0"

@@ -1,5 +1,7 @@
 require 'deep_clone'
 
+require_relative 'league_settings'
+
 class Team
   attr_accessor :batters, :pitchers, :batter_slots, :pitcher_slots, :team_percentiles, :target_stats
   
@@ -13,16 +15,11 @@ class Team
   end
 
   def store_league_settings
-    @batter_slots = { "C" => 2, "1B" => 1, "2B" => 1, "3B" => 1, "SS" => 1,
-                      "LF" => 0, "CF" => 0, "RF" => 0, "CI" => 1, "MI" => 1, 
-                      "OF" => 5, "UTIL" => 2 }
-
-    @pitcher_slots = { "SP" => 4, "RP" => 2, "P" => 4 }
-
-    @target_stats = {
-      :bat => [:r, :hr, :rbi, :sb, :obp, :slg ],
-      :pit => [ :sv, :hr, :so, :era, :whip, :qs ]
-    }
+    @target_stats = LeagueSettings.get_stats
+    @initial_batter_slots = LeagueSettings.get_positions[:bat]
+    @initial_pitcher_slots = LeagueSettings.get_positions[:pit]
+    @batter_slots = @initial_batter_slots.clone
+    @pitcher_slots = @initial_pitcher_slots.clone
   end
 
   def get_target_percentiles(team_percentiles)
@@ -186,6 +183,29 @@ class Team
     return nil
   end
 
+  def remaining_positional_impact(pos)
+    if @initial_pitcher_slots.include?(pos)
+        return (0.1) * (@pitcher_slots[pos] / @initial_pitcher_slots[pos])
+
+    elsif @initial_batter_slots.include?(pos)
+      initial_aux_slots = 0
+      cur_aux_slots = 0
+
+      if pos == "1B" || pos == "3B"
+        initial_aux_slots += @initial_batter_slots["CI"]
+        cur_aux_slots += @batter_slots["CI"]
+      elsif pos == "2B" || pos == "SS"
+        initial_aux_slots += @initial_batter_slots["MI"]
+        cur_aux_slots += @batter_slots["MI"]
+      end
+
+      current_slots = @batter_slots[pos] + cur_aux_slots
+      initial_slots = @initial_batter_slots[pos] + initial_aux_slots
+
+      return (0.1) * (current_slots / initial_slots).to_f
+    end
+  end
+
   def print_team_percentiles
     puts "-------------------------"
     puts "Team Average Percentiles"
@@ -214,5 +234,21 @@ class Team
   def print_basic()
     puts @batters
     puts @pitchers
+  end
+
+  def total_batter_slots_remaining()
+    sum = 0
+
+    @batter_slots.each do |_, slots|
+      sum += slots
+    end
+  end
+
+  def total_pitcher_slots_remaining()
+    sum = 0
+
+    @pitcher_slots.each do |_, slots|
+      sum += slots
+    end
   end
 end

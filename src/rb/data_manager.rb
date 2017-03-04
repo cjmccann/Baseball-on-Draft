@@ -1,22 +1,16 @@
+require_relative 'league_settings'
+
 class DataManager
-  attr_accessor :parser, :batters, :pitchers, :averages, :stddevs, :positional_adjustments
+  attr_accessor :parser, :batters, :pitchers, :averages, :stddevs, :positional_adjustments, :pitcher_slots, :batter_slots, :target_stats
 
   def initialize(parser)
     @averages = { :bat => { }, :pit => { } }
     @stddevs = { :bat => { }, :pit => { } }
     @positional_adjustments = { }
 
-    # TODO: centralize this -- currently a dupe w/ team
-    @target_stats = {
-      :bat => [:r, :hr, :rbi, :sb, :obp, :slg ],
-      :pit => [ :sv, :hr, :so, :era, :whip, :qs ]
-    }
-
-    @batter_slots = { "C" => 2, "1B" => 1, "2B" => 1, "3B" => 1, "SS" => 1,
-                      "LF" => 0, "CF" => 0, "RF" => 0, "CI" => 1, "MI" => 1, 
-                      "OF" => 5, "UTIL" => 2 }
-
-    @pitcher_slots = { "SP" => 4, "RP" => 2, "P" => 4 }
+    @target_stats = LeagueSettings.get_stats
+    @batter_slots = LeagueSettings.get_positions[:bat]
+    @pitcher_slots = LeagueSettings.get_positions[:pit]
 
     @parser = parser
     @batters = parser.batters
@@ -52,8 +46,10 @@ class DataManager
   end
 
   def update_cumulative_stats
-    @averages = { }
+    @averages = { :bat => { }, :pit => { } }
     @stddevs = { :bat => { }, :pit => { } }
+
+    @on_update = true
 
     compute_average_weighted_means(@averages[:bat], @batters)
     compute_average_weighted_means(@averages[:pit], @pitchers)
@@ -105,6 +101,7 @@ class DataManager
 
 
   def compute_average_weighted_means(averages, players)
+
     players.each do |name, player|
       next if player.is_drafted?
 
@@ -125,6 +122,7 @@ class DataManager
       data[:values].each do |value|
         sum += value.to_f
       end
+
 
       data[:global_avg] = sum / data[:values].length
     end
@@ -192,6 +190,24 @@ class DataManager
 
     return player_values.sort_by { |name, obj|  (-1) * obj[:value] }
   end
+
+  def get_sorted_players_list_with_pos_adjustments_plus_slots(pos = nil, team = nil)
+    player_values = { }
+
+    @all_players.each do |name, player|
+      unless player.is_drafted?
+        if pos.nil? || player.matches_position?(pos)
+          next if @positional_adjustments[player.position].nil?
+
+          player_values[name] = { :value => (player.get_absolute_percentile_sum(@target_stats) * @positional_adjustments[player.position]) * (1.0 + team.remaining_positional_impact(player.position)),
+                                  :players => player }
+        end
+      end 
+    end
+
+    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+  end
+
 
   def set_positional_adjustments()
     volatilities = { :bat => { }, :pit => { } }

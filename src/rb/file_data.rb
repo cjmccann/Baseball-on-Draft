@@ -1,17 +1,20 @@
 class FileData
   # TODO: store this in info in JSON and load it.
-  @@files = {
-    'projections/bat-steamer.csv' => { :model => :steamer, :type => :bat },
-    'projections/bat-depthcharts.csv' => { :model => :depthcharts, :type => :bat },
-    'projections/bat-pecota.csv' => { :model => :pecota, :type => :bat },
-    'projections/bat-zips.csv' => { :model => :zips, :type => :bat },
-    'projections/pit-steamer.csv' => { :model => :steamer, :type => :pit },
-    'projections/pit-depthcharts.csv' => { :model => :depthcharts, :type => :pit },
-    'projections/pit-pecota.csv' => { :model => :pecota, :type => :pit},
-    'projections/pit-zips.csv' => { :model => :zips, :type => :pit }
-  }
+
+  @@files = nil
 
   def self.files
+    if @@files.nil?
+      load_file_data
+    end
+
     @@files
+  end
+
+  def self.load_file_data
+    files_path = File.expand_path(File.dirname(__FILE__) + '/../data/file_data.yml')
+
+    @@files = YAML.load_file(files_path)
+    binding.pry
   end
 end
