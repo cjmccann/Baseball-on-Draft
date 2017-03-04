@@ -9,7 +9,7 @@ class Controller
     parser = ProjectionParser.new(options)
     @data_manager = DataManager.new(parser)
 
-    @team = Team.new()
+    @team = Team.new(@data_manager)
     @batters = parser.batters
     @pitchers = parser.pitchers
     @all_players = @batters.merge(@pitchers) do |key, oldval, newval|
@@ -21,7 +21,7 @@ class Controller
     @other_teams = []
 
     (league_size - 1).times do
-      @other_teams.push(Team.new())
+      @other_teams.push(Team.new(@data_manager))
     end
   end
 
@@ -35,11 +35,14 @@ class Controller
         puts "What do you want to do? (Input number to select.)"
         puts "  1. Add a player to your team."
         puts "  2. Add a player to another team."
-        puts "  3. Display top 25 available players."
-        puts "  4. Display top 25 available players for position."
-        puts "  5. Display my team."
-        puts "  6. Display other team."
-        puts "  7. Display all other teams."
+        puts "  3. Display top 25 available players. (Relative to current team)"
+        puts "  4. Display top 25 available players for position. (Relative to current team)"
+        puts "  5. Display top 25 available players. (Absolute)"
+        puts "  6. Display top 25 available players for position. (Absolute)"
+        puts "  7. Display top 25 available players. (Position adjusted)"
+        puts "  8. Display my team."
+        puts "  X. Display other team."
+        puts "  X. Display all other teams."
         puts "  8. Display all drafted players."
         puts "  9. binding.pry"
         puts "  0. Exit."
@@ -85,18 +88,27 @@ class Controller
       print_players(sorted_players, 25)
       false
     when "4"
+      puts ""
       puts "Which position?"
       sorted_players = get_sorted_players_list(get_more_info(response)[:pos])
       print_players(sorted_players, 25)
       false
     when "5"
-      @team.print_detailed()
+      sorted_players = get_sorted_players_list_absolute_percentiles()
+      print_players(sorted_players, 25)
       false
     when "6"
-      # TODO: add handling for specific team printing
-      false 
+      puts ""
+      puts "Which position?"
+      sorted_players = get_sorted_players_list_absolute_percentiles(get_more_info(response)[:pos])
+      print_players(sorted_players, 25)
+      false
     when "7"
-      @other_teams.each { |team| team.print_basic() }
+      sorted_players = get_sorted_players_list_with_pos_adjustments()
+      print_players(sorted_players, 25)
+      false
+    when "8"
+      @team.print_detailed()
       false
     when "9"
       binding.pry
@@ -126,10 +138,11 @@ class Controller
       info[:name] = next_response
     when "2"
       info[:name] = next_response
+      puts ""
       puts "Which team? 0 - #{@league_size}"
       print ">>> "
       info[:team_no] = gets.chomp
-    when "4"
+    when "4", "6"
       info[:pos] = next_response
     end
 
@@ -160,14 +173,91 @@ class Controller
       @all_players.each do |name, player|
         unless player.is_drafted?
           if pos.nil? || player.matches_position?(pos)
-            player_values[name] = @team.get_target_percentile_deltas_with_new_player(player)[:deltas_magnitude]
+            player_values[name] = { :value => @team.get_target_percentile_deltas_with_new_player(player)[:deltas_magnitude], :player => player }
           end
         end
       end
 
-      sorted_players = player_values.sort_by { |name, deltas_magnitude| (-1) * deltas_magnitude } 
-      sorted_players
+      return player_values.sort_by { |name, obj| (-1) * obj[:value] } 
   end 
+
+  def get_sorted_players_list_absolute_percentiles(pos = nil)
+    player_values = { } 
+
+    @all_players.each do |name, player|
+      unless player.is_drafted?
+        if pos.nil? || player.matches_position?(pos)
+          player_values[name] = { :value => player.get_absolute_percentile_sum(@team.target_stats), :player => player }
+        end
+      end
+    end
+
+    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+  end
+
+  def get_sorted_players_list_with_pos_adjustments(pos = nil)
+    set_positional_adjustments()
+    player_values = { } 
+
+    @all_players.each do |name, player|
+      unless player.is_drafted?
+        if pos.nil? || player.matches_position?(pos)
+          next if @positional_adjustments[player.position].nil? 
+          player_values[name] = { :value => player.get_absolute_percentile_sum(@team.target_stats) * @positional_adjustments[player.position], 
+                                  :player => player }
+        end
+      end
+    end
+
+    return player_values.sort_by { |name, obj|  (-1) * obj[:value] }
+  end
+
+  def set_positional_adjustments()
+    volatilities = { :bat => { }, :pit => { } }
+    @positional_adjustments = { }
+    subset_size = 10
+
+
+    @team.batter_slots.each do |pos, _|
+      # TODO: Excluding RF/LF/CF due to league settings, only need OF slots
+      next if pos == "CI" || pos == "MI" || pos == "UTIL" || pos == "RF" || pos == "LF" || pos == "CF"
+      volatilities[:bat][pos] = get_volatility_for_position(pos, subset_size)
+    end
+
+    @team.pitcher_slots.each do |pos, _|
+      next if pos == "P"
+      volatilities[:pit][pos] = get_volatility_for_position(pos, subset_size)
+    end
+
+    avg_batter_volatility = volatilities[:bat].values.reduce(0, :+) / volatilities[:bat].length
+    avg_pitcher_volatility = volatilities[:pit].values.reduce(0, :+) / volatilities[:pit].length
+
+    volatilities[:bat].each do |pos, value|
+      @positional_adjustments[pos] = (value / avg_batter_volatility)
+    end
+
+    volatilities[:pit].each do |pos, value|
+      @positional_adjustments[pos] = (value / avg_pitcher_volatility)
+    end
+  end
+
+  def get_volatility_for_position(pos, n)
+    sorted_players_subset = get_sorted_players_list_absolute_percentiles(pos).slice(0, n)
+    players = { }
+
+    sorted_players_subset.each do |elem|
+      players[elem[0]] = elem[1][:player]
+    end
+
+    if !players.empty?
+      type = players.values[0].type
+    else
+      # TODO: Do this better, get type in some other way.
+      puts "Players list is empty when getting variance."
+    end
+
+    @data_manager.get_volatility_for_players(players, @team.target_stats[type])
+  end
 
   def print_players(players, n)
     i = 0
@@ -177,7 +267,7 @@ class Controller
     puts "Player | Cumulative percentile difference"
     puts "-----------------------------------------"
     while i < n
-      puts " #{(i + 1).to_s}. " + players[i][0] + " | " + players[i][1].to_s
+      puts " #{(i + 1).to_s}. " + players[i][0] + " | " + players[i][1][:value].to_s
       i += 1
     end
   end

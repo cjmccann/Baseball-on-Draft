@@ -113,7 +113,8 @@ class ProjectionParser
 
       result = nil
 
-      if model == :steamer || model == :depthcharts
+      # TODO: generalize this so don't have to specify all models
+      if model == :steamer || model == :depthcharts || model == :zips
         result = players.select { |k, v| k == row[0] }
       elsif model == :pecota
         result = players.select do |k, v| 
@@ -185,6 +186,7 @@ class ProjectionParser
     is_empty
   end
 
+  # TODO: if this fails when new file is added, hash value may still be there but may need to parse data -- may not exist in JSON
   def store_file_info(filename, players)
     @file_digests[filename] = Digest::MD5.file(filename)
   end

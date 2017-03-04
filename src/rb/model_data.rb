@@ -8,9 +8,10 @@ class ModelData
   end
 
   @@model_weights = {
-    :steamer => 0.5,
+    :steamer => 0.3,
     :depthcharts => 0.2,
-    :pecota => 0.3
+    :pecota => 0.25,
+    :zips => 0.25
   }
 
   @@models = {
@@ -48,6 +49,41 @@ class ModelData
         :bbper9 => 16,
         :fip => 17,
         :war => 18
+      }
+    },
+    :zips => {
+      :bat => {
+        :name => 0,
+        :pa => 3,
+        :h => 5,
+        :doubles => 6,
+        :hr => 8,
+        :r => 9,
+        :rbi => 10,
+        :bb => 11,
+        :so => 12,
+        :sb => 14,
+        :avg => 16,
+        :obp => 17,
+        :slg => 18,
+        :war => 23
+      },
+      :pit => {
+        :name => 0,
+        :w => 2,
+        :l => 3,
+        :era => 4,
+        :gs => 5,
+        :ip => 7,
+        :h => 8,
+        :hr => 10,
+        :so => 11,
+        :bb => 12,
+        :whip => 13,
+        :kper9 => 14,
+        :bbper9 => 15,
+        :fip => 16,
+        :war => 17
       }
     },
     :depthcharts => {

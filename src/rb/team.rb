@@ -1,9 +1,10 @@
 require 'deep_clone'
 
 class Team
-  attr_accessor :batters, :pitchers, :batter_slots, :pitcher_slots, :team_percentiles
+  attr_accessor :batters, :pitchers, :batter_slots, :pitcher_slots, :team_percentiles, :target_stats
   
-  def initialize()
+  def initialize(data_manager)
+    @data_manager = data_manager
     @batters = { }
     @pitchers = { }
     @team_percentiles = { :bat => { }, :pit => { } }
@@ -13,14 +14,14 @@ class Team
 
   def store_league_settings
     @batter_slots = { "C" => 2, "1B" => 1, "2B" => 1, "3B" => 1, "SS" => 1,
-                      "LF" => 0, "CF" => 0, "RF" => 0,
-                      "CI" => 1, "MI" => 1, "OF" => 5, "UTIL" => 2 }
+                      "LF" => 0, "CF" => 0, "RF" => 0, "CI" => 1, "MI" => 1, 
+                      "OF" => 5, "UTIL" => 2 }
 
     @pitcher_slots = { "SP" => 4, "RP" => 2, "P" => 4 }
 
     @target_stats = {
-      :bat => [:r, :hr, :rbi, :sb, :avg],
-      :pit => [:w, :sv, :so, :era, :whip]
+      :bat => [:r, :hr, :rbi, :sb, :obp, :slg ],
+      :pit => [ :sv, :hr, :so, :era, :whip, :gs ]
     }
   end
 
@@ -40,11 +41,6 @@ class Team
     target_percentiles
   end
 
-
-  def simulate_add_player(player)
-
-  end
-
   def add_player(player)
     if player.type == :bat
       add_batter(player)
@@ -62,6 +58,7 @@ class Team
       register_batter_slot(player, slot)
       player.set_drafted
       update_team_percentiles(player)
+      @data_manager.update_cumulative_stats
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
     end
@@ -74,13 +71,14 @@ class Team
       register_pitcher_slot(player, slot)
       player.set_drafted
       update_team_percentiles(player)
+      @data_manager.update_cumulative_stats
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
     end
   end
 
   def update_team_percentiles(player)
-    player.stats[:percentiles].each do |category, percentile|
+    player.stats[:initial_percentiles].each do |category, percentile|
       update_percentile(@team_percentiles, player.type, category, percentile)
     end
   end
@@ -126,7 +124,7 @@ class Team
   def get_simulated_team_percentiles(player)
     team_percentile_clone = DeepClone.clone(@team_percentiles)
 
-    player.stats[:percentiles].each do |category, percentile|
+    player.stats[:initial_percentiles].each do |category, percentile|
       update_percentile(team_percentile_clone, player.type, category, percentile)
     end
 
@@ -188,6 +186,26 @@ class Team
     return nil
   end
 
+  def print_team_percentiles
+    puts "-------------------------"
+    puts "Team Average Percentiles"
+    puts "-------------------------"
+    puts "Batting:"
+
+    target_percentiles = get_target_percentiles(@team_percentiles)
+    target_percentiles[:bat].each do |category, value|
+      puts "#{category}: #{value}"
+    end
+
+    puts "-------------------------"
+    puts "Pitching:"
+    target_percentiles[:pit].each do |category, value|
+      puts "#{category}: #{value}"
+    end
+    puts "-------------------------"
+  end
+
+  # TODO: improve print detailed
   def print_detailed()
     puts @batters
     puts @pitchers

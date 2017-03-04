@@ -7,13 +7,16 @@ class Player
     @type = nil
     @drafted = false
 
+    # TODO: initialize the stats Hash with all projection model names -- failed with zips
     @stats = {
       :steamer => { },
       :depthcharts => { },
-      :pecota => { }
+      :pecota => { },
+      :zips => { }
     }
   end
 
+  # TODO: is this needed? unused
   def compute_player_stddevs(averages)
     averages.each do |category, fields|
       @stats[:means][category] - fields[:global_avg]
@@ -21,13 +24,9 @@ class Player
     end
   end
 
+  # TODO: generalize this for new projection stats as well?
   def process_data_from_json(name, stats)
     @name = name
-    @stats = {
-      :steamer => { },
-      :depthcharts => { },
-      :pecota => { }
-    }
 
     stats["steamer"].each do |category, stat|
       @stats[:steamer][category.to_sym] = stat
@@ -40,6 +39,10 @@ class Player
     stats["pecota"].each do |category, stat|
       @stats[:pecota][category.to_sym] = stat
     end
+
+    stats["zips"].each do |category, stat|
+      @stats[:zips][category.to_sym] = stat
+    end 
   end
 
   def process_data(data, model, type)
@@ -70,35 +73,64 @@ class Player
   end
 
   def is_valid?()
-    has_40_pa = (@stats[:steamer][:pa].to_f > 40 || @stats[:depthcharts][:pa].to_f > 40 || @stats[:pecota][:pa].to_f > 40)
-    has_40_ip = (@stats[:steamer][:ip].to_f > 40 || @stats[:depthcharts][:ip].to_f > 40 || @stats[:pecota][:ip].to_f > 40)
+    min_pa = 200
+    min_ip = 40
 
-    return (has_40_pa || has_40_ip)
+    has_min_pa = (@stats[:steamer][:pa].to_f > min_pa || @stats[:depthcharts][:pa].to_f > min_pa || @stats[:pecota][:pa].to_f > min_pa )
+    has_min_ip = (@stats[:steamer][:ip].to_f > min_ip || @stats[:depthcharts][:ip].to_f > min_ip || @stats[:pecota][:ip].to_f > min_ip )
+
+    return (has_min_pa || has_min_ip)
   end
 
-  def compute_zscore(averages, stddevs)
+  def compute_zscores(averages, stddevs)
     zscores = { }
 
     @stats[:means].each do |category, value|
       zscores[category] = (value - averages[category][:global_avg]) / stddevs[category]
     end
 
-    @stats[:zscores] = zscores
+    @stats[:current_zscores] = zscores
   end
 
   def compute_percentile()
     percentiles = { }
 
-    @stats[:zscores].each do |category, value|
-      if category == :era || category == :whip || category == :bbper9 || category == :fip || category == :dra
+    @stats[:current_zscores].each do |category, value|
+      if @type == :pit && (category == :era || category == :whip || category == :bbper9 || 
+                           category == :fip || category == :dra || category == :hr)
         percentiles[category] = 100 - get_percentile(value)
       else
         percentiles[category] = get_percentile(value)
       end
-
     end
 
-    @stats[:percentiles] = percentiles
+    @stats[:current_percentiles] = percentiles
+  end
+
+  # TODO: refactor and combine with compute zscore
+  def get_zscore_subset(averages, stddevs)
+    zscores = { }
+
+    averages.each do |category, obj|
+      zscores[category] = (@stats[:means][category] - obj[:global_avg]) / stddevs[category]
+    end
+
+    return zscores
+  end
+
+  def get_percentile_subset(zscores)
+    percentiles = { }
+
+    zscores.each do |category, value|
+      if @type == :pit && (category == :era || category == :whip || category == :bbper9 || 
+                           category == :fip || category == :dra || category == :hr)
+        percentiles[category] = 100 - get_percentile(value)
+      else
+        percentiles[category] = get_percentile(value)
+      end
+    end
+
+    return percentiles
   end
 
   # http://stackoverflow.com/questions/31875909/z-score-to-probability-and-vice-verse-in-ruby
@@ -124,6 +156,16 @@ class Player
     # 1-sum
   end
 
+  def get_absolute_percentile_sum(target_stats)
+    sum = 0.0
+
+    target_stats[@type].each do |category|
+      sum += @stats[:current_percentiles][category]
+    end
+
+    return sum
+  end
+
   def is_drafted?
     @drafted
   end
@@ -146,6 +188,10 @@ class Player
 
     if pos == "OF"
       return true if @position == "LF" || @position == "CF" || @position == "RF"
+    end
+
+    if pos == "P"
+      return true if @position == "SP" || @position == "RP"
     end
 
     return false
