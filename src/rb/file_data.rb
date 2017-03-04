@@ -1,4 +1,5 @@
 class FileData
+  # TODO: store this in info in JSON and load it.
   @@files = {
     'projections/bat-steamer.csv' => { :model => :steamer, :type => :bat },
     'projections/bat-depthcharts.csv' => { :model => :depthcharts, :type => :bat },

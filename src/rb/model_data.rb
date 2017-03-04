@@ -1,4 +1,5 @@
 class ModelData
+  # TODO: store this in info in JSON and load it.
   def self.models
     @@models
   end

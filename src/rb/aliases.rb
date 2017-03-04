@@ -1,6 +1,7 @@
 require 'set'
 
 class Aliases 
+  # TODO: Convert all this to JSON instead of csv. csv bad.
   @@aliases = { }
   @@aliases_filepath = File.expand_path(File.dirname(__FILE__) + "/../data/aliases.csv")
 
