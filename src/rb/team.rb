@@ -21,7 +21,7 @@ class Team
 
     @target_stats = {
       :bat => [:r, :hr, :rbi, :sb, :obp, :slg ],
-      :pit => [ :sv, :hr, :so, :era, :whip, :gs ]
+      :pit => [ :sv, :hr, :so, :era, :whip, :qs ]
     }
   end
 

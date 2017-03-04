@@ -72,6 +72,14 @@ class Player
     end
   end
 
+  def compute_quality_starts()
+    # assumption: 4.5 era => 50% QS rate
+    # compute this current player's QS rate based on this assumption
+    
+    qs_rate = (1 - ((0.5 * @stats[:means][:era]) / 4.5))
+    @stats[:means][:qs] = @stats[:means][:gs] * qs_rate
+  end
+
   def is_valid?()
     min_pa = 200
     min_ip = 40
@@ -96,8 +104,8 @@ class Player
     percentiles = { }
 
     @stats[:current_zscores].each do |category, value|
-      if @type == :pit && (category == :era || category == :whip || category == :bbper9 || 
-                           category == :fip || category == :dra || category == :hr)
+      if @type == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
+                           category == :fip || category == :dra || category == :hr || category == :h )
         percentiles[category] = 100 - get_percentile(value)
       else
         percentiles[category] = get_percentile(value)
