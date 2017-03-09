@@ -16,6 +16,7 @@ class LeaguesController < ApplicationController
 
   def edit
     @league = League.find(params[:id])
+    authorize! :update, @league
   end
 
   def create
@@ -34,6 +35,8 @@ class LeaguesController < ApplicationController
 
   def destroy
     @league = League.find(params[:id])
+    authorize! :destroy, @league
+
     @league.destroy
 
     redirect_to leagues_path

@@ -22,20 +22,6 @@
     <% end %>
 </table>
 
-<h2>Add a team</h2>
-<%= form_for([@league, @league.teams.build]) do |f| %>
-    <p>
-        <%= f.label :name %><br>
-        <%= f.text_field :name %>
-    </p>
-    <p>
-        <%= f.label :players %><br>
-        <%= f.text_area :players %>
-    </p>
-    <p>
-    <%= f.submit %>
-    </p>
-<% end %>
-
-<%-#<% link_to 'Edit' edit_league_path(@league) %>
+<hr>
+<%= link_to 'Create team', new_league_team_path(@league) =%> | 
 <%= link_to 'Back', leagues_path %>

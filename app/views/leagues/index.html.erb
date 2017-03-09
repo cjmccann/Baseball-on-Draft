@@ -6,6 +6,7 @@
     </tr>
 
     <% @leagues.each do |league| %>
+      <% if can? :read, league %>
         <tr>
             <td><%= league.name %></td>
             <td><%= link_to 'Show', league_path(league) %></td>
@@ -14,7 +15,10 @@
                 method: :delete,
                 data: { confirm: 'Are you sure?' } %></td>
         </tr>
+      <% end %>
     <% end %>
 
-    <%= link_to 'Create new league', new_league_path %>
 </table>
+
+<br>
+<%= link_to 'Create new league', new_user_league_path(current_user) %>

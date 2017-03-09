@@ -1,17 +1,25 @@
   <% if user_signed_in? %>
     <h2> Available Leagues </h2>
-    <% @leagues.each do |league| %>
+      <table>
         <tr>
-            <td><%= league.name %></td>
-            <td><%= link_to 'Show', league_path(league) %></td>
-            <td><%= link_to 'Edit', edit_league_path(league) %></td>
-            <td><%= link_to 'Destroy', league_path(league),
-                method: :delete,
-                data: { confirm: 'Are you sure?' } %></td>
+            <th>Name</th>
         </tr>
 
-        <p><%= link_to 'Create new league', new_user_league_path(current_user) %></p>
-    <% end %>
+        <% @leagues.each do |league| %>
+          <% if can? :read, league %>
+            <tr>
+                <td><%= league.name %></td>
+                <td><%= link_to 'Show', league_path(league) %></td>
+                <td><%= link_to 'Edit', edit_league_path(league) %></td>
+                <td><%= link_to 'Destroy', league_path(league),
+                    method: :delete,
+                    data: { confirm: 'Are you sure?' } %></td>
+            </tr>
+          <% end %>
+        <% end %>
+      </table>
+
+      <p><%= link_to 'Create new league', new_user_league_path(current_user) %></p>
   <% else %>
     <h3> Please sign in to see your league data! </h3>
   <% end %>

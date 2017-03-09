@@ -8,8 +8,8 @@ class TeamsController < ApplicationController
   end
 
   def show
-    #@league = League.find(params[:league_id])
     @team = Team.find(params[:id])
+    authorize! :read, @team
   end
 
   def new
@@ -20,6 +20,7 @@ class TeamsController < ApplicationController
   def edit
     @league = League.find(params[:league_id])
     @team = Team.find(params[:id])
+    authorize! :update, @team
   end
 
   def create
@@ -29,7 +30,7 @@ class TeamsController < ApplicationController
 
     #redirect_to league_path(@league)
     if @team.save
-      redirect_to @team
+      redirect_to @team.league
     else
       render 'new'
     end
@@ -47,6 +48,8 @@ class TeamsController < ApplicationController
 
   def destroy
     @team = Team.find(params[:id])
+    authorize! :destroy, @team
+
     @team.destroy
 
     redirect_to league_path(League.find(params[:league_id]))
