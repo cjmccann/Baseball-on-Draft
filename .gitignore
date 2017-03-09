@@ -45,3 +45,4 @@ bower.json
 
 .DS_Store
 *.swp
+*.log
