@@ -15,6 +15,5 @@ class FileData
     files_path = File.expand_path(File.dirname(__FILE__) + '/../data/file_data.yml')
 
     @@files = YAML.load_file(files_path)
-    binding.pry
   end
 end

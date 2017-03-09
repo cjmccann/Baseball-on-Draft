@@ -1,0 +1,41 @@
+<% can? :read, @league %>
+<p>
+<strong>League:</strong>
+<%= @league.name %>
+</p>
+
+<h2>Current teams</h2>
+<table>
+    <tr>
+        <th>Name</th>
+    </tr>
+
+    <% @league.teams.each do |team| %>
+        <tr>
+            <td><%= team.name %></td>
+            <td><%= link_to 'Show', team_path(team) %></td>
+            <td><%= link_to 'Edit', edit_team_path(team) %></td>
+            <td><%= link_to 'Destroy', team_path(team),
+                method: :delete,
+                data: { confirm: 'Are you sure?' } %></td>
+        </tr>
+    <% end %>
+</table>
+
+<h2>Add a team</h2>
+<%= form_for([@league, @league.teams.build]) do |f| %>
+    <p>
+        <%= f.label :name %><br>
+        <%= f.text_field :name %>
+    </p>
+    <p>
+        <%= f.label :players %><br>
+        <%= f.text_area :players %>
+    </p>
+    <p>
+    <%= f.submit %>
+    </p>
+<% end %>
+
+<%-#<% link_to 'Edit' edit_league_path(@league) %>
+<%= link_to 'Back', leagues_path %>
