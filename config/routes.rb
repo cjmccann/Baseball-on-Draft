@@ -7,7 +7,12 @@ Rails.application.routes.draw do
   end
 
   resources :leagues, shallow: true do
+    resources :setting_managers
     resources :teams
+  end
+
+  resources :setting_managers, shallow:true do
+    resources :settings
   end
 
   resources :teams, shallow: true do

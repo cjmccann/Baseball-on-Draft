@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  fields: MyText
+  league_id: 
+
+two:
+  fields: MyText
+  league_id: 

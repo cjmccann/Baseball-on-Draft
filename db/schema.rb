@@ -11,14 +11,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170309054240) do
+ActiveRecord::Schema.define(version: 20170310072031) do
 
   create_table "leagues", force: :cascade do |t|
     t.string   "name"
+    t.datetime "created_at",         null: false
+    t.datetime "updated_at",         null: false
+    t.integer  "user_id"
+    t.integer  "setting_manager_id"
+  end
+
+  add_index "leagues", ["setting_manager_id"], name: "index_leagues_on_setting_manager_id"
+
+  create_table "setting_managers", force: :cascade do |t|
+    t.integer  "league_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "user_id"
   end
+
+  create_table "settings", force: :cascade do |t|
+    t.integer  "league_id"
+    t.datetime "created_at",         null: false
+    t.datetime "updated_at",         null: false
+    t.integer  "user_id"
+    t.string   "name"
+    t.integer  "position_value"
+    t.boolean  "category_value"
+    t.integer  "setting_manager_id"
+    t.string   "setting_type"
+  end
+
+  add_index "settings", ["league_id"], name: "index_settings_on_league_id"
 
   create_table "teams", force: :cascade do |t|
     t.string   "name"

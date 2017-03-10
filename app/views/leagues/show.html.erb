@@ -1,4 +1,3 @@
-<% can? :read, @league %>
 <p>
 <strong>League:</strong>
 <%= @league.name %>
@@ -23,5 +22,7 @@
 </table>
 
 <hr>
+
+<%= link_to 'Edit league settings', setting_manager_path(@league.setting_manager) %> | 
 <%= link_to 'Create team', new_league_team_path(@league) =%> | 
 <%= link_to 'Back', leagues_path %>

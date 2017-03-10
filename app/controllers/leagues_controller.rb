@@ -22,6 +22,7 @@ class LeaguesController < ApplicationController
   def create
     @league = League.new(league_params)
     @league.user = current_user
+    @league.setting_manager = SettingManager.new( { :league => @league, :user => current_user } )
 
     if @league.save
       redirect_to @league
