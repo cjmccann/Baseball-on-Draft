@@ -3,6 +3,7 @@ class League < ActiveRecord::Base
 
   has_many :teams, dependent: :destroy
   has_one :setting_manager, dependent: :destroy
+  has_one :draft_helper, dependent: :destroy
 
   validates :name, presence: true,
     length: { minimum: 5 }

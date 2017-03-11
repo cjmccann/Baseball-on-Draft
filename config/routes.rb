@@ -9,10 +9,7 @@ Rails.application.routes.draw do
   resources :leagues, shallow: true do
     resources :setting_managers
     resources :teams
-  end
-
-  resources :setting_managers, shallow:true do
-    resources :settings
+    resources :draft_helpers
   end
 
   resources :teams, shallow: true do

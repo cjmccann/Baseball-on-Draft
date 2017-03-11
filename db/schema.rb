@@ -11,7 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170310072031) do
+ActiveRecord::Schema.define(version: 20170311065944) do
+
+  create_table "draft_helpers", force: :cascade do |t|
+    t.integer  "league_id"
+    t.integer  "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "draft_helpers", ["league_id"], name: "index_draft_helpers_on_league_id"
 
   create_table "leagues", force: :cascade do |t|
     t.string   "name"
@@ -25,24 +34,52 @@ ActiveRecord::Schema.define(version: 20170310072031) do
 
   create_table "setting_managers", force: :cascade do |t|
     t.integer  "league_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
     t.integer  "user_id"
+    t.integer  "bat_C"
+    t.integer  "bat_1B"
+    t.integer  "bat_2B"
+    t.integer  "bat_3B"
+    t.integer  "bat_SS"
+    t.integer  "bat_LF"
+    t.integer  "bat_CF"
+    t.integer  "bat_RF"
+    t.integer  "bat_CI"
+    t.integer  "bat_MI"
+    t.integer  "bat_OF"
+    t.integer  "bat_UTIL"
+    t.integer  "pit_SP"
+    t.integer  "pit_RP"
+    t.integer  "pit_P"
+    t.boolean  "bat_r"
+    t.boolean  "bat_hr"
+    t.boolean  "bat_rbi"
+    t.boolean  "bat_sb"
+    t.boolean  "bat_obp"
+    t.boolean  "bat_slg"
+    t.boolean  "bat_doubles"
+    t.boolean  "bat_bb"
+    t.boolean  "bat_so"
+    t.boolean  "bat_avg"
+    t.boolean  "bat_war"
+    t.boolean  "pit_sv"
+    t.boolean  "pit_hr"
+    t.boolean  "pit_so"
+    t.boolean  "pit_era"
+    t.boolean  "pit_whip"
+    t.boolean  "pit_qs"
+    t.boolean  "pit_gs"
+    t.boolean  "pit_w"
+    t.boolean  "pit_l"
+    t.boolean  "pit_h"
+    t.boolean  "pit_bb"
+    t.boolean  "pit_kper9"
+    t.boolean  "pit_bbper9"
+    t.boolean  "pit_fip"
+    t.boolean  "pit_war"
+    t.boolean  "pit_dra"
   end
-
-  create_table "settings", force: :cascade do |t|
-    t.integer  "league_id"
-    t.datetime "created_at",         null: false
-    t.datetime "updated_at",         null: false
-    t.integer  "user_id"
-    t.string   "name"
-    t.integer  "position_value"
-    t.boolean  "category_value"
-    t.integer  "setting_manager_id"
-    t.string   "setting_type"
-  end
-
-  add_index "settings", ["league_id"], name: "index_settings_on_league_id"
 
   create_table "teams", force: :cascade do |t|
     t.string   "name"

@@ -25,7 +25,7 @@ class LeaguesController < ApplicationController
     @league.setting_manager = SettingManager.new( { :league => @league, :user => current_user } )
 
     if @league.save
-      redirect_to @league
+      redirect_to setting_manager_path(@league.setting_manager)
     else
       render 'new'
     end

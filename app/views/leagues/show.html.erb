@@ -1,8 +1,9 @@
 <p>
-<strong>League:</strong>
-<%= @league.name %>
+<h1>League: <%= @league.name %></h1>
+<%= link_to 'Edit league settings', setting_manager_path(@league.setting_manager) %>
 </p>
 
+<br>
 <h2>Current teams</h2>
 <table>
     <tr>
@@ -21,8 +22,19 @@
     <% end %>
 </table>
 
+<br>
+<%= button_to 'Add new team', new_league_team_path(@league) =%>
+
 <hr>
 
-<%= link_to 'Edit league settings', setting_manager_path(@league.setting_manager) %> | 
-<%= link_to 'Create team', new_league_team_path(@league) =%> | 
+<% if @league.draft_helper.nil? %>
+  <%= button_to 'Generate Draft Helper', new_league_draft_helper_path(@league), { :method => :get } %>
+<% else %>
+  <%= button_to 'View Draft Helper', league_draft_helper_path(@league) %>
+  <%= button_to 'Re-generate Draft Helper', new_league_draft_helper_path(@league) %> 
+<% end %>
+
+<br>
+<br>
+<hr>
 <%= link_to 'Back', leagues_path %>
