@@ -23,12 +23,14 @@ class LeaguesController < ApplicationController
     @league = League.new(league_params)
     @league.user = current_user
     @league.setting_manager = SettingManager.new( { :league => @league, :user => current_user } )
+    @league.teams.push(Team.new( { :name => 'My Team', :league => @league, :user => current_user } ))
 
     if @league.save
       redirect_to setting_manager_path(@league.setting_manager)
     else
       render 'new'
     end
+
 
     #@league = League.find(params[:league_id])
     #@team = @league.teams.create(league_params)

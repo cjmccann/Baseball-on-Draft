@@ -13,7 +13,7 @@
           <tr>
             <td><%= position.split('_')[1] %></td>
             <td><%= manager_form.select position, 
-              ['1', '2', '3', '4', '5', '6', '7'], 
+              ['0','1', '2', '3', '4', '5', '6', '7'], 
               :selected => @setting_manager[position].to_s %>
             </td>
           </tr>
@@ -33,7 +33,7 @@
           <tr>
             <td><%= position.split('_')[1] %></td>
             <td>
-              <%= manager_form.select position, ['1', '2', '3', '4', '5', '6', '7'], 
+              <%= manager_form.select position, ['0', '1', '2', '3', '4', '5', '6', '7'], 
               :selected => @setting_manager[position].to_s %>
             </td>
           </tr>

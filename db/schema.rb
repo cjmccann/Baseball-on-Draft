@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170311065944) do
+ActiveRecord::Schema.define(version: 20170311185344) do
 
   create_table "draft_helpers", force: :cascade do |t|
     t.integer  "league_id"
@@ -31,6 +31,19 @@ ActiveRecord::Schema.define(version: 20170311065944) do
   end
 
   add_index "leagues", ["setting_manager_id"], name: "index_leagues_on_setting_manager_id"
+
+  create_table "players", force: :cascade do |t|
+    t.string   "name"
+    t.string   "position"
+    t.string   "player_type"
+    t.text     "stats"
+    t.integer  "team_id"
+    t.integer  "user_id"
+    t.integer  "draft_helper_id"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.boolean  "is_drafted"
+  end
 
   create_table "setting_managers", force: :cascade do |t|
     t.integer  "league_id"

@@ -1,0 +1,50 @@
+<div id="settings" style="float:left; margin:0; width:100%;">
+  <div id="positionSettings" style="float:left; margin:20px; width:auto;">
+    <h2>Positional Settings</h2>
+    <table style="margin:auto;" >
+        <tr>
+          <th>Batters</th>
+          <th>Count</th>
+          <th>Pitchers</th>
+          <th>Count</th>
+        </tr>
+
+        <% SettingManager.defaults[:batter_positions].keys.each_with_index do |position, index| %>
+          <tr>
+            <td><strong><%= position.split('_')[1] %></strong></td>
+            <td><%= @setting_manager[position] %></td>
+            <% if !SettingManager.defaults[:pitcher_positions].keys[index].nil? %>
+              <td><strong><%= SettingManager.defaults[:pitcher_positions].keys[index].split('_')[1] %></strong></td>
+              <td><%= @setting_manager[SettingManager.defaults[:pitcher_positions].keys[index]] %></td>
+            <% end %>
+          </tr>
+        <% end %>
+    </table>
+  </div>
+
+  <div id="categorySettings" style="float:left; margin:20px; width:auto;">
+    <h2>Category Settings</h2>
+    <table style="margin:auto;">
+        <tr>
+          <th>Batting</th>
+          <th></th>
+          <th>Pitching</th>
+        </tr>
+
+        <% SettingManager.defaults[:pitcher_stats].keys.each_with_index do |category, index| %>
+          <tr>
+            <% if !SettingManager.defaults[:batter_stats].keys[index].nil? %>
+              <td><%= SettingManager.defaults[:batter_stats].keys[index].split('_')[1] %></td>
+              <td><%= check_box_tag 'stat_enabled', 'true', @setting_manager[SettingManager.defaults[:batter_stats].keys[index]], disabled: true %></td>
+            <% else %>
+              <td></td>
+              <td></td>
+            <% end %>
+              <td><%= category.split('_')[1] %></td>
+              <td><%= check_box_tag 'stat_enabled', 'true', @setting_manager[category], disabled: true %></td>
+          </tr>
+        <% end %>
+    </table>
+  </div>
+</div>
+<%= button_to 'Change settings', setting_manager_path(@setting_manager), { :method => :get } %>

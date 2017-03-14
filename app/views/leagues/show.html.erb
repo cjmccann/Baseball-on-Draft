@@ -13,25 +13,27 @@
     <% @league.teams.each do |team| %>
         <tr>
             <td><%= team.name %></td>
-            <td><%= link_to 'Show', team_path(team) %></td>
-            <td><%= link_to 'Edit', edit_team_path(team) %></td>
+              <td><%= link_to 'Show Players', team_path(team) %></td>
+            <% if team.name != "My Team" %>
+              <td><%= link_to 'Edit Name', edit_team_path(team) %></td>
             <td><%= link_to 'Destroy', team_path(team),
                 method: :delete,
                 data: { confirm: 'Are you sure?' } %></td>
+            <% end %>
         </tr>
     <% end %>
 </table>
 
 <br>
-<%= button_to 'Add new team', new_league_team_path(@league) =%>
+<%= button_to 'Add new team', new_league_team_path(@league), { :method => :get } =%>
 
 <hr>
 
 <% if @league.draft_helper.nil? %>
   <%= button_to 'Generate Draft Helper', new_league_draft_helper_path(@league), { :method => :get } %>
 <% else %>
-  <%= button_to 'View Draft Helper', league_draft_helper_path(@league) %>
-  <%= button_to 'Re-generate Draft Helper', new_league_draft_helper_path(@league) %> 
+  <%= button_to 'View Draft Helper', draft_helper_path(@league.draft_helper), { :method => :get } %>
+  <%= button_to 'Regenerate draft helper with new settings', @league.draft_helper.regenerate %> 
 <% end %>
 
 <br>

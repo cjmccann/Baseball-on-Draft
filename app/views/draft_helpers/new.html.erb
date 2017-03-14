@@ -1,0 +1,27 @@
+<% if @draft_helper.errors.any? %>
+      <div id="error_explanation">
+          <h2>
+              <%= pluralize(@draft_helper.errors.count, "error") %> prohibited this article from being saved:
+          </h2>
+          <ul>
+              <% @draft_helper.errors.full_messages.each do |msg| %>
+                  <li><%= msg %></li>
+              <% end %>
+          </ul>
+      </div>
+<% end %>
+
+<div>
+  <h2>Confirm settings for league.</h2>
+  <h3>Name: <%= @league.name %></h3>
+  <h3>Teams (<%= @league.teams.length %>):</h3>
+  <ul>
+    <% @league.teams.each do |team| %>
+      <li><%= team.name %></li>
+    <% end %>
+  </ul>
+
+  <%= render :template => 'setting_managers/_readonly' %>
+</div>
+
+<%= button_to 'Generate!', league_draft_helpers_path(@league), { :method => :post, :league_id => @league } %>

@@ -9,6 +9,8 @@ class DraftHelpersController < ApplicationController
 
   def new
     @draft_helper = DraftHelper.new
+    @league = League.find(params[:league_id])
+    @setting_manager = @league.setting_manager
   end
 
   def edit
@@ -18,12 +20,12 @@ class DraftHelpersController < ApplicationController
 
   def create
     binding.pry
-    @draft_helper = DraftHelper.new(league_params)
+    @draft_helper = DraftHelper.new
     @draft_helper.user = current_user
-    @draft_helper.league = nil
+    @draft_helper.league = League.find(params[:league_id])
 
-    if @league.save
-      redirect_to setting_manager_path(@league.setting_manager)
+    if @draft_helper.save
+      redirect_to draft_helper_path(@draft_helper)
     else
       render 'new'
     end

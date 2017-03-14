@@ -18,8 +18,8 @@ class TeamsController < ApplicationController
   end
 
   def edit
-    @league = League.find(params[:league_id])
     @team = Team.find(params[:id])
+    @league = @team.league
     authorize! :update, @team
   end
 
@@ -48,11 +48,12 @@ class TeamsController < ApplicationController
 
   def destroy
     @team = Team.find(params[:id])
+    @league = @team.league
     authorize! :destroy, @team
 
     @team.destroy
 
-    redirect_to league_path(League.find(params[:league_id]))
+    redirect_to league_path(@league)
   end
 
   private
