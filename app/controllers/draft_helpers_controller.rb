@@ -19,7 +19,6 @@ class DraftHelpersController < ApplicationController
   end
 
   def create
-    binding.pry
     @draft_helper = DraftHelper.new
     @draft_helper.user = current_user
     @draft_helper.league = League.find(params[:league_id])

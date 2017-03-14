@@ -61,6 +61,32 @@ class SettingManager < ActiveRecord::Base
     }
   }
 
+  def convert_all_settings_to_hash
+    hash = { :positions => { :bat => { }, :pit => { } }, :stats => { :bat => [], :pit => [] } }
+    
+    self.defaults[:batter_positions].each do |position, _|
+      hash[:positions][:bat][position.split('_')[1]] = self[position]
+    end
+
+    self.defaults[:pitcher_positions].each do |position, count|
+      hash[:positions][:pit][position.split('_')[1]] = self[position]
+    end
+
+    self.defaults[:batter_stats].each do |category, _|
+      if self[category]
+        hash[:stats][:bat].push(category.split('_')[1].to_sym)
+      end
+    end
+
+    self.defaults[:pitcher_stats].each do |category, _|
+      if self[category]
+        hash[:stats][:pit].push(category.split('_')[1].to_sym)
+      end
+    end
+
+    hash
+  end
+
   private
   def set_default_values
     self.defaults[:batter_positions].each do |position, count|

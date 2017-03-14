@@ -123,6 +123,7 @@ GEM
     rdoc (4.3.0)
     responders (2.3.0)
       railties (>= 4.2.0, < 5.1)
+    ruby_deep_clone (0.7.2)
     sass (3.4.23)
     sass-rails (5.0.6)
       railties (>= 4.0.0, < 6)
@@ -175,6 +176,7 @@ DEPENDENCIES
   pry
   pry-nav
   rails (= 4.2.6)
+  ruby_deep_clone
   sass-rails (~> 5.0)
   sdoc (~> 0.4.0)
   spring

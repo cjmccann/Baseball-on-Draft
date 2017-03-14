@@ -1,16 +1,19 @@
 class Player < ActiveRecord::Base
-  attr_accessor :name, :value, :stats, :position, :type
+  attr_accessor :value, :type
 
-  before_create :set_default_values
+  serialize :stats, Hash
+
+  belongs_to :league
+  belongs_to :user
+  belongs_to :team
+
+  validates_uniqueness_of :name, scope: :league_id
 
   def set_default_values
-    @name = nil
-    @position = nil
     @type = nil
-    @drafted = false
 
     # TODO: initialize the stats Hash with all projection model names -- failed with zips
-    @stats = {
+    self.stats = {
       :steamer => { },
       :depthcharts => { },
       :pecota => { },
@@ -21,56 +24,57 @@ class Player < ActiveRecord::Base
   # TODO: is this needed? unused
   def compute_player_stddevs(averages)
     averages.each do |category, fields|
-      @stats[:means][category] - fields[:global_avg]
+      self.stats[:means][category] - fields[:global_avg]
 
     end
   end
 
   # TODO: generalize this for new projection stats as well?
   def process_data_from_json(name, stats)
-    @name = name
+    self.name = name
 
-    stats["steamer"].each do |category, stat|
-      @stats[:steamer][category.to_sym] = stat
+    stats["steamer"].each do |category, val|
+      self.stats[:steamer][category.to_sym] = val
     end
 
-    stats["depthcharts"].each do |category, stat|
-      @stats[:depthcharts][category.to_sym] = stat
+    stats["depthcharts"].each do |category, val|
+      self.stats[:depthcharts][category.to_sym] = val 
     end
 
-    stats["pecota"].each do |category, stat|
-      @stats[:pecota][category.to_sym] = stat
+    stats["pecota"].each do |category, val|
+      self.stats[:pecota][category.to_sym] = val
     end
 
-    stats["zips"].each do |category, stat|
-      @stats[:zips][category.to_sym] = stat
+    stats["zips"].each do |category, val|
+      self.stats[:zips][category.to_sym] = val
     end 
   end
 
   def process_data(data, model, type)
     curr_model = ModelData.models[model][type]
     @type = type
+    self.player_type = type.to_s
 
     if model == :steamer || model == :depthcharts
-      @name = data[curr_model[:name]]
+      self.name = data[curr_model[:name]]
     elsif @name == nil
-      @name = "BP-ONLY"
+      self.name = "BP-ONLY"
     end
 
     if model == :pecota && type == :bat
-      @position = data[curr_model[:pos]].strip
+      self.position = data[curr_model[:pos]].strip
     end
 
     curr_model.each do |key, value|
-      @stats[model][key] = data[value]
+      self.stats[model][key] = data[value]
     end
   end
 
   def assign_pitcher_pos()
-    if @stats[:means][:ip] > 80
-      @position = "SP"
+    if self.stats[:means][:ip] > 80
+      self.position = "SP"
     else
-      @position = "RP"
+      self.position = "RP"
     end
   end
 
@@ -78,16 +82,16 @@ class Player < ActiveRecord::Base
     # assumption: 4.5 era => 50% QS rate
     # compute this current player's QS rate based on this assumption
     
-    qs_rate = (1 - ((0.5 * @stats[:means][:era]) / 4.5))
-    @stats[:means][:qs] = @stats[:means][:gs] * qs_rate
+    qs_rate = (1 - ((0.5 * self.stats[:means][:era]) / 4.5))
+    self.stats[:means][:qs] = self.stats[:means][:gs] * qs_rate
   end
 
   def is_valid?()
     min_pa = 200
     min_ip = 40
 
-    has_min_pa = (@stats[:steamer][:pa].to_f > min_pa || @stats[:depthcharts][:pa].to_f > min_pa || @stats[:pecota][:pa].to_f > min_pa )
-    has_min_ip = (@stats[:steamer][:ip].to_f > min_ip || @stats[:depthcharts][:ip].to_f > min_ip || @stats[:pecota][:ip].to_f > min_ip )
+    has_min_pa = (self.stats[:steamer][:pa].to_f > min_pa || self.stats[:depthcharts][:pa].to_f > min_pa || self.stats[:pecota][:pa].to_f > min_pa )
+    has_min_ip = (self.stats[:steamer][:ip].to_f > min_ip || self.stats[:depthcharts][:ip].to_f > min_ip || self.stats[:pecota][:ip].to_f > min_ip )
 
     return (has_min_pa || has_min_ip)
   end
@@ -95,17 +99,17 @@ class Player < ActiveRecord::Base
   def compute_zscores(averages, stddevs)
     zscores = { }
 
-    @stats[:means].each do |category, value|
+    self.stats[:means].each do |category, value|
       zscores[category] = (value - averages[category][:global_avg]) / stddevs[category]
     end
 
-    @stats[:current_zscores] = zscores
+    self.stats[:current_zscores] = zscores
   end
 
   def compute_percentile()
     percentiles = { }
 
-    @stats[:current_zscores].each do |category, value|
+    self.stats[:current_zscores].each do |category, value|
       if @type == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
                            category == :fip || category == :dra || category == :hr || category == :h )
         percentiles[category] = 100 - get_percentile(value)
@@ -114,7 +118,7 @@ class Player < ActiveRecord::Base
       end
     end
 
-    @stats[:current_percentiles] = percentiles
+    self.stats[:current_percentiles] = percentiles
   end
 
   # TODO: refactor and combine with compute zscore
@@ -122,7 +126,7 @@ class Player < ActiveRecord::Base
     zscores = { }
 
     averages.each do |category, obj|
-      zscores[category] = (@stats[:means][category] - obj[:global_avg]) / stddevs[category]
+      zscores[category] = (self.stats[:means][category] - obj[:global_avg]) / stddevs[category]
     end
 
     return zscores
@@ -170,14 +174,14 @@ class Player < ActiveRecord::Base
     sum = 0.0
 
     target_stats[@type].each do |category|
-      sum += @stats[:current_percentiles][category]
+      sum += self.stats[:current_percentiles][category]
     end
 
     return sum
   end
 
   def is_drafted?
-    @drafted
+    self.is_drafted
   end
 
   def set_drafted
@@ -186,22 +190,22 @@ class Player < ActiveRecord::Base
 
   def matches_position?(pos)
     return false if pos.nil?
-    return true if @position == pos || pos == "UTIL"
+    return true if self.position == pos || pos == "UTIL"
 
     if pos == "CI"
-      return true if @position == "1B" || @position == "3B"
+      return true if self.position == "1B" || self.position == "3B"
     end
 
     if pos == "MI"
-      return true if @position == "2B" || @position == "SS"
+      return true if self.position == "2B" || self.position == "SS"
     end
 
     if pos == "OF"
-      return true if @position == "LF" || @position == "CF" || @position == "RF"
+      return true if self.position == "LF" || self.position == "CF" || self.position == "RF"
     end
 
     if pos == "P"
-      return true if @position == "SP" || @position == "RP"
+      return true if self.position == "SP" || self.position == "RP"
     end
 
     return false

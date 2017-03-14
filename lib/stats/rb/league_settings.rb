@@ -7,6 +7,10 @@ class LeagueSettings
     @@settings = YAML.load_file(settings_path)
   end
 
+  def self.set_league_settings(settings)
+    @@settings = settings
+  end
+
   def self.get_positions
     return @@settings[:positions]
   end

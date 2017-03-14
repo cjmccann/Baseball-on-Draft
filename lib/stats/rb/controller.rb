@@ -1,13 +1,13 @@
 require_relative 'league_settings'
 require_relative 'projection_parser'
 require_relative 'data_manager'
-require_relative 'team'
+# require_relative 'team'
 
 class Controller
   attr_accessor :options, :data_manager, :team, :other_teams, :batters, :pitchers, :all_players, :league_size
 
   def initialize(options)
-    LeagueSettings.load_default_settings()
+    LeagueSettings.load_default_settings((options[:settings]))
     parser = ProjectionParser.new(options)
     @data_manager = DataManager.new(parser)
 

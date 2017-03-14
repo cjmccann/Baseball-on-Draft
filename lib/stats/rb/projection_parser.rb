@@ -5,13 +5,14 @@ require 'digest'
 require_relative 'model_data'
 require_relative 'file_data'
 require_relative 'aliases'
-require_relative 'player'
+require_relative 'league_settings'
+# require_relative 'player'
 
 class ProjectionParser
-  attr_accessor :batters, :pitchers, :options, :file_digests, :batters_path, :pitchers_path, :digests_path
+  attr_accessor :batters, :pitchers, :file_digests, :batters_path, :pitchers_path, :digests_path, :draft_helper
 
-  def initialize(options)
-    @options = options
+  def initialize(draft_helper)
+    @draft_helper = draft_helper
     @batters = { }
     @pitchers = { }
 
@@ -25,7 +26,7 @@ class ProjectionParser
       @file_digests = { }
     end
 
-    Aliases.load_aliases() unless @options[:forceAliasProcessing] 
+    Aliases.load_aliases() 
 
     if File.exist?(@batters_path)
       @batters = convert_json_to_players(JSON.parse(File.read(@batters_path)))
@@ -38,16 +39,13 @@ class ProjectionParser
     FileData.files.each do |filename, props|
       filename = File.expand_path(File.dirname(__FILE__) + '/../' + filename)
 
-      if @options[:forceProjectionProcessing]
+      if @file_digests[filename] != Digest::MD5.file(filename).hexdigest
         read_csv(filename, props[:model], props[:type])
 
       elsif props[:type] == :bat && !File.exist?(@batters_path)
         read_csv(filename, props[:model], props[:type])
 
       elsif props[:type] == :pit && !File.exist?(@pitchers_path)
-        read_csv(filename, props[:model], props[:type])
-
-      elsif @file_digests[filename] != Digest::MD5.file(filename).hexdigest
         read_csv(filename, props[:model], props[:type])
       end
     end
@@ -87,9 +85,11 @@ class ProjectionParser
     players = { }
 
     json.each do |name, value|
-      player = Player.new()
+      # player = Player.new({ :draft_helper_id => @draft_helper, :league_id => @draft_helper.league, :user_id => @draft_helper.user, :is_drafted => false})
+      player = @draft_helper.league.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, :position => value["position"], :player_type => value["type"] })
+      player.set_default_values
       player.process_data_from_json(name, value["stats"])
-      player.position = value["position"]
+      # player.position = value["position"]
       player.type = value["type"].to_sym
       players[name] = player if player.is_valid?
     end
@@ -131,7 +131,10 @@ class ProjectionParser
 
       if result.empty?
         unless empty_row?(row)
-          player = Player.new()
+          # player = Player.new({ :draft_helper_id => @draft_helper, :league_id => @draft_helper.league, :user_id => @draft_helper.user, :is_drafted => false})
+          player = @draft_helper.league.players.build({ :draft_helper_id => @draft_helper, :league_id => @draft_helper.league, :user_id => @draft_helper.user, :is_drafted => false})
+          player.set_default_values
+
           player.process_data(row, model, type)
           players[player.name] = player if player.is_valid?
         end
