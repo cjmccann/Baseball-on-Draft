@@ -39,13 +39,13 @@ class ProjectionParser
     FileData.files.each do |filename, props|
       filename = File.expand_path(File.dirname(__FILE__) + '/../' + filename)
 
-      if @file_digests[filename] != Digest::MD5.file(filename).hexdigest
-        read_csv(filename, props[:model], props[:type])
-
-      elsif props[:type] == :bat && !File.exist?(@batters_path)
+      if props[:type] == :bat && !File.exist?(@batters_path)
         read_csv(filename, props[:model], props[:type])
 
       elsif props[:type] == :pit && !File.exist?(@pitchers_path)
+        read_csv(filename, props[:model], props[:type])
+
+      elsif @file_digests[filename] != Digest::MD5.file(filename).hexdigest
         read_csv(filename, props[:model], props[:type])
       end
     end
@@ -75,7 +75,13 @@ class ProjectionParser
     hash = { }
 
     players.each do |name, value|
-      hash[name] = { "position" => value.position, "type" => value.type, "stats" => value.stats }
+      hash[name] = { "position" => value.position, "type" => value.player_type, "stats" => value.stats }
+    end
+
+    begin
+      JSON.pretty_generate(hash)
+    rescue JSON::GeneratorError
+      binding.pry
     end
 
     return JSON.pretty_generate(hash)
@@ -85,12 +91,19 @@ class ProjectionParser
     players = { }
 
     json.each do |name, value|
-      # player = Player.new({ :draft_helper_id => @draft_helper, :league_id => @draft_helper.league, :user_id => @draft_helper.user, :is_drafted => false})
-      player = @draft_helper.league.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, :position => value["position"], :player_type => value["type"] })
-      player.set_default_values
+      player_record = Player.where( { :league_id => @draft_helper.league, :name => name, :player_type => value["type"] } )
+      player = nil
+
+      if player_record.empty?
+        player = @draft_helper.league.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, :position => value["position"], :player_type => value["type"] })
+        player.set_default_values
+      else
+        player = player_record.first
+      end
+
       player.process_data_from_json(name, value["stats"])
       # player.position = value["position"]
-      player.type = value["type"].to_sym
+      player.player_type = value["type"]
       players[name] = player if player.is_valid?
     end
 
@@ -104,18 +117,26 @@ class ProjectionParser
       players = @pitchers
     end
 
-    skip_header = true
-    CSV.foreach(filename, skip_blanks: true) do |row|
-      if skip_header
-        skip_header = false
-        next
-      end
+    csv = nil
 
+    file = File.open(filename, "r")
+
+    begin
+      # work around for CSV::MalformedCSVError illegal quoting, but also skips header row
+      csv = CSV.new(file, { skip_blanks: true })
+      csv.gets
+    rescue CSV::MalformedCSVError => e
+      puts "CSV encountered illegal quoting error on line 1. Skipping and parsing rest of CSV."
+    end
+
+    csv.each do |row|
       result = nil
+      name = nil
 
       # TODO: generalize this so don't have to specify all models
       if model == :steamer || model == :depthcharts || model == :zips
         result = players.select { |k, v| k == row[0] }
+        name = row[0]
       elsif model == :pecota
         result = players.select do |k, v| 
           next if row[1].nil? || row[2].nil?
@@ -131,9 +152,15 @@ class ProjectionParser
 
       if result.empty?
         unless empty_row?(row)
-          # player = Player.new({ :draft_helper_id => @draft_helper, :league_id => @draft_helper.league, :user_id => @draft_helper.user, :is_drafted => false})
-          player = @draft_helper.league.players.build({ :draft_helper_id => @draft_helper, :league_id => @draft_helper.league, :user_id => @draft_helper.user, :is_drafted => false})
-          player.set_default_values
+          player_record = Player.where( { :league_id => @draft_helper.league, :name => name, :player_type => type.to_s } )
+          player = nil
+
+          if player_record.empty?
+            player = @draft_helper.league.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, :player_type => type.to_s })
+            player.set_default_values
+          else
+            player = player_record.first
+          end
 
           player.process_data(row, model, type)
           players[player.name] = player if player.is_valid?

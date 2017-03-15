@@ -11,7 +11,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170314062722) do
+ActiveRecord::Schema.define(version: 20170315081041) do
+
+  create_table "data_managers", force: :cascade do |t|
+    t.integer  "draft_helper_id"
+    t.integer  "league_id"
+    t.integer  "user_id"
+    t.text     "averages"
+    t.text     "stddevs"
+    t.text     "positional_adjustments"
+    t.text     "target_stats"
+    t.text     "batter_slots"
+    t.text     "pitcher_slots"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
 
   create_table "draft_helpers", force: :cascade do |t|
     t.integer  "league_id"
@@ -46,7 +60,9 @@ ActiveRecord::Schema.define(version: 20170314062722) do
     t.text     "stats"
   end
 
+  add_index "players", ["league_id", "name", "player_type"], name: "index_players_on_league_id_and_name_and_player_type"
   add_index "players", ["league_id", "name"], name: "index_players_on_league_id_and_name"
+  add_index "players", ["league_id", "player_type"], name: "index_players_on_league_id_and_player_type"
   add_index "players", ["league_id"], name: "index_players_on_league_id"
 
   create_table "setting_managers", force: :cascade do |t|

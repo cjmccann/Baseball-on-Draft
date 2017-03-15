@@ -1,17 +1,14 @@
 class Player < ActiveRecord::Base
-  attr_accessor :value, :type
-
   serialize :stats, Hash
 
   belongs_to :league
   belongs_to :user
   belongs_to :team
 
-  validates_uniqueness_of :name, scope: :league_id
+  # validates_uniqueness_of :name, scope: :league_id
+  validates :name, :uniqueness => { :scope => [:league_id, :player_type] }
 
   def set_default_values
-    @type = nil
-
     # TODO: initialize the stats Hash with all projection model names -- failed with zips
     self.stats = {
       :steamer => { },
@@ -52,7 +49,7 @@ class Player < ActiveRecord::Base
 
   def process_data(data, model, type)
     curr_model = ModelData.models[model][type]
-    @type = type
+    
     self.player_type = type.to_s
 
     if model == :steamer || model == :depthcharts
@@ -110,7 +107,7 @@ class Player < ActiveRecord::Base
     percentiles = { }
 
     self.stats[:current_zscores].each do |category, value|
-      if @type == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
+      if self.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
                            category == :fip || category == :dra || category == :hr || category == :h )
         percentiles[category] = 100 - get_percentile(value)
       else
@@ -136,7 +133,7 @@ class Player < ActiveRecord::Base
     percentiles = { }
 
     zscores.each do |category, value|
-      if @type == :pit && (category == :era || category == :whip || category == :bbper9 || 
+      if self.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || 
                            category == :fip || category == :dra || category == :hr)
         percentiles[category] = 100 - get_percentile(value)
       else
@@ -173,7 +170,8 @@ class Player < ActiveRecord::Base
   def get_absolute_percentile_sum(target_stats)
     sum = 0.0
 
-    target_stats[@type].each do |category|
+    target_stats[self.player_type.to_sym].each do |category|
+      binding.pry if self.stats[:current_percentiles][category].nil?
       sum += self.stats[:current_percentiles][category]
     end
 

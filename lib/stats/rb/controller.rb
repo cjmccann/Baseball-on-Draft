@@ -1,6 +1,6 @@
 require_relative 'league_settings'
 require_relative 'projection_parser'
-require_relative 'data_manager'
+# require_relative 'data_manager'
 # require_relative 'team'
 
 class Controller
