@@ -1,12 +1,13 @@
 class Player < ActiveRecord::Base
   serialize :stats, Hash
 
+  belongs_to :draft_helper
   belongs_to :league
   belongs_to :user
   belongs_to :team
 
   # validates_uniqueness_of :name, scope: :league_id
-  validates :name, :uniqueness => { :scope => [:league_id, :player_type] }
+  validates :name, :uniqueness => { :scope => [:draft_helper_id, :player_type] }
 
   def set_default_values
     # TODO: initialize the stats Hash with all projection model names -- failed with zips
@@ -27,9 +28,7 @@ class Player < ActiveRecord::Base
   end
 
   # TODO: generalize this for new projection stats as well?
-  def process_data_from_json(name, stats)
-    self.name = name
-
+  def process_data_from_json(stats)
     stats["steamer"].each do |category, val|
       self.stats[:steamer][category.to_sym] = val
     end
@@ -52,9 +51,9 @@ class Player < ActiveRecord::Base
     
     self.player_type = type.to_s
 
-    if model == :steamer || model == :depthcharts
+    if self.name.nil? && (model == :steamer || model == :depthcharts)
       self.name = data[curr_model[:name]]
-    elsif @name == nil
+    elsif self.name.nil?
       self.name = "BP-ONLY"
     end
 

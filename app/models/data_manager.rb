@@ -10,9 +10,11 @@ class DataManager < ActiveRecord::Base
   serialize :batter_slots, Hash
   serialize :pitcher_slots, Hash
 
-  after_initialize :set_default_values
+  before_save :set_default_values
 
-  def update_cumulative_stats
+  attr_accessor :batters, :pitchers
+
+  def update_cumulative_stats(do_save)
     self.averages = { :bat => { }, :pit => { } }
     self.stddevs = { :bat => { }, :pit => { } }
     self.positional_adjustments = { }
@@ -30,6 +32,7 @@ class DataManager < ActiveRecord::Base
     compute_all_percentiles(pitchers)
      
     set_positional_adjustments()
+    save_all_players() if do_save
   end
 
   private
@@ -41,20 +44,33 @@ class DataManager < ActiveRecord::Base
     assign_all_pitcher_pos(pitchers)
     compute_quality_starts(pitchers)
 
-    update_cumulative_stats
+    update_cumulative_stats(false)
     set_initial_zscores_and_percentiles
+    save_all_players
   end
 
   def batters
-    self.draft_helper.batters
+    if @batters
+      @batters
+    else 
+      self.draft_helper.batters
+    end
   end
 
   def pitchers
-    self.draft_helper.pitchers
+    if @pitchers
+      @pitchers
+    else
+      self.draft_helper.pitchers
+    end
   end
 
   def all_players
-    self.draft_helper.all_players
+    if @batters && @pitchers
+      @batters.concat(@pitchers)
+    else
+      self.draft_helper.all_players
+    end
   end
 
   def compute_weighted_means(players)
@@ -88,7 +104,7 @@ class DataManager < ActiveRecord::Base
       end
 
       player.stats[:means] = means
-      player.save
+      player.stats_will_change!
     end
   end
   
@@ -141,7 +157,6 @@ class DataManager < ActiveRecord::Base
       next if player.is_drafted?
 
       player.compute_zscores(self.averages[type], self.stddevs[type])
-      player.save
     end
   end
 
@@ -150,7 +165,6 @@ class DataManager < ActiveRecord::Base
       next if player.is_drafted?
 
       player.compute_percentile()
-      player.save
     end
   end
 
@@ -289,14 +303,12 @@ class DataManager < ActiveRecord::Base
   def assign_all_pitcher_pos(players)
     players.each do |player|
       player.assign_pitcher_pos()
-      player.save
     end
   end
 
   def compute_quality_starts(players)
     players.each do |player|
       player.compute_quality_starts()
-      player.save
     end
   end
 
@@ -309,6 +321,12 @@ class DataManager < ActiveRecord::Base
     pitchers.each do |player|
       player.stats[:initial_zscores] = player.stats[:current_zscores]
       player.stats[:initial_percentiles] = player.stats[:current_percentiles]
+    end
+  end
+
+  def save_all_players
+    all_players.each do |player|
+      player.save
     end
   end
 end

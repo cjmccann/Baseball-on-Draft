@@ -75,7 +75,7 @@ class ProjectionParser
     hash = { }
 
     players.each do |name, value|
-      hash[name] = { "position" => value.position, "type" => value.player_type, "stats" => value.stats }
+      hash[name] = { "position" => value.position, "player_type" => value.player_type, "stats" => value.stats }
     end
 
     begin
@@ -91,25 +91,20 @@ class ProjectionParser
     players = { }
 
     json.each do |name, value|
-      player_record = Player.where( { :league_id => @draft_helper.league, :name => name, :player_type => value["type"] } )
-      player = nil
+      player = @draft_helper.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, 
+                                               :position => value["position"], :player_type => value["type"], :user => @draft_helper.user })
+      player.set_default_values
 
-      if player_record.empty?
-        player = @draft_helper.league.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, :position => value["position"], :player_type => value["type"] })
-        player.set_default_values
-      else
-        player = player_record.first
-      end
-
-      player.process_data_from_json(name, value["stats"])
-      # player.position = value["position"]
-      player.player_type = value["type"]
+      player.process_data_from_json(value["stats"])
+      player.player_type = value["player_type"]
       players[name] = player if player.is_valid?
     end
 
     return players
   end
 
+  # TODO: make this collect into hash, write to json, and then read the json?
+  # Would eliminate the need for player creation in two places.
   def read_csv(filename, model, type)
     if type == :bat
       players = @batters
@@ -144,6 +139,7 @@ class ProjectionParser
           bool_a = k.include?(row[1]) && k.include?(row[2])
 
           pecota_name = row[2] + ' ' + row[1]
+          name = pecota_name
           bool_b = k.split(' ').reduce(true) { |prev, n| prev && pecota_name.include?(n) }
           
           (bool_a || bool_b)
@@ -152,16 +148,10 @@ class ProjectionParser
 
       if result.empty?
         unless empty_row?(row)
-          player_record = Player.where( { :league_id => @draft_helper.league, :name => name, :player_type => type.to_s } )
-          player = nil
+          player = @draft_helper.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, 
+                                                 :player_type => type.to_s, :user => @draft_helper.user })
 
-          if player_record.empty?
-            player = @draft_helper.league.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, :player_type => type.to_s })
-            player.set_default_values
-          else
-            player = player_record.first
-          end
-
+          player.set_default_values
           player.process_data(row, model, type)
           players[player.name] = player if player.is_valid?
         end
@@ -201,7 +191,7 @@ class ProjectionParser
       end
     end
 
-    store_file_info(filename, players)
+    store_file_info(filename)
   end
 
   def empty_row?(row)
@@ -217,7 +207,7 @@ class ProjectionParser
   end
 
   # TODO: if this fails when new file is added, hash value may still be there but may need to parse data -- may not exist in JSON
-  def store_file_info(filename, players)
+  def store_file_info(filename)
     @file_digests[filename] = Digest::MD5.file(filename)
   end
 

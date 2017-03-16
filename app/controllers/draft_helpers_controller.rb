@@ -4,8 +4,6 @@ class DraftHelpersController < ApplicationController
 
   def show
     @draft_helper = DraftHelper.find(params[:id])
-    binding.pry
-    @players = @draft_helper.data_manager.all_players
     authorize! :read, @draft_helper
   end
 
@@ -21,14 +19,18 @@ class DraftHelpersController < ApplicationController
   end
 
   def create
-    @draft_helper = DraftHelper.new
-    @draft_helper.user = current_user
-    @draft_helper.league = League.find(params[:league_id])
-
-    if @draft_helper.save
-      redirect_to draft_helper_path(@draft_helper)
+    if(League.find(params[:league_id]).draft_helper)
+      redirect_to draft_helper_path(League.find(params[:league_id]).draft_helper)
     else
-      render 'new'
+      @draft_helper = DraftHelper.new
+      @draft_helper.user = current_user
+      @draft_helper.league = League.find(params[:league_id])
+
+      if @draft_helper.save
+        redirect_to draft_helper_path(@draft_helper)
+      else
+        render 'new'
+      end
     end
   end
 
