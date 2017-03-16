@@ -4,7 +4,7 @@ class DraftHelpersController < ApplicationController
 
   def show
     @draft_helper = DraftHelper.find(params[:id])
-    binding.pry
+    @draft_helper.data_manager.set_default_values
     authorize! :read, @draft_helper
   end
 

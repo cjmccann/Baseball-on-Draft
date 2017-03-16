@@ -11,9 +11,25 @@ class DataManager < ActiveRecord::Base
   serialize :pitcher_slots, Hash
 
   # after_create :init_dynamic_stats
-  before_save :init_dynamic_stats, :set_default_values
+  # before_save :set_default_values
 
-  attr_accessor :dynamic_stats
+  attr_accessor :dynamic_stats, :dynamic_stats_init
+
+  def set_default_values
+    @dynamic_stats_init = true
+
+    compute_weighted_means(batters)
+    compute_weighted_means(pitchers)
+
+    compute_quality_starts(pitchers)
+
+    update_cumulative_stats
+    set_initial_zscores_and_percentiles
+
+    @dynamic_stats_init = false
+
+    update_cumulative_stats
+  end
 
   def update_cumulative_stats
     self.averages = { :bat => { }, :pit => { } }
@@ -36,10 +52,6 @@ class DataManager < ActiveRecord::Base
   end
 
   private
-  def init_dynamic_stats
-    @dynamic_stats = { }
-  end
-
   def ensure_dynamic_stats_for_player(player)
     if @dynamic_stats.nil?
       @dynamic_stats = { }
@@ -48,16 +60,6 @@ class DataManager < ActiveRecord::Base
     if @dynamic_stats[player.id].nil?
       @dynamic_stats[player.id] = { }
     end
-  end
-
-  def set_default_values
-    compute_weighted_means(batters)
-    compute_weighted_means(pitchers)
-
-    compute_quality_starts(pitchers)
-
-    update_cumulative_stats
-    set_initial_zscores_and_percentiles
   end
 
   def batters
@@ -327,6 +329,10 @@ class DataManager < ActiveRecord::Base
   end
 
   def is_drafted?(player)
-    self.draft_helper.drafted_player_ids[player.id] ? true : false
+    if @dynamic_stats_init
+      return false
+    else 
+      self.draft_helper.drafted_player_ids[player.id] ? true : false
+    end
   end
 end

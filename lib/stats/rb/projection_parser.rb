@@ -92,7 +92,7 @@ class ProjectionParser
     players = { }
 
     json.each do |name, value|
-      player = Player.where({ :name => name, :position => value["position"], :player_type => value["type"] }).first_or_initialize
+      player = Player.where({ :name => name, :position => value["position"], :player_type => value["player_type"] }).first_or_initialize
       player.set_default_values
 
       player.process_data_from_json(value["static_stats"])
