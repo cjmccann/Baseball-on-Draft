@@ -9,10 +9,9 @@ require_relative 'league_settings'
 # require_relative 'player'
 
 class ProjectionParser
-  attr_accessor :batters, :pitchers, :file_digests, :batters_path, :pitchers_path, :digests_path, :draft_helper
+  attr_accessor :batters, :pitchers, :file_digests, :batters_path, :pitchers_path, :digests_path
 
-  def initialize(draft_helper)
-    @draft_helper = draft_helper
+  def initialize
     @batters = { }
     @pitchers = { }
 
@@ -50,9 +49,11 @@ class ProjectionParser
       end
     end
 
-    clean_player_lists()
-
+    # clean_player_lists()
+    assign_all_pitcher_pos(@pitchers)
     write_parser_data()
+    save_player_records(@batters)
+    save_player_records(@pitchers)
   end
 
   def write_parser_data()
@@ -75,7 +76,7 @@ class ProjectionParser
     hash = { }
 
     players.each do |name, value|
-      hash[name] = { "position" => value.position, "player_type" => value.player_type, "stats" => value.stats }
+      hash[name] = { "position" => value.position, "player_type" => value.player_type, "static_stats" => value.static_stats }
     end
 
     begin
@@ -91,11 +92,10 @@ class ProjectionParser
     players = { }
 
     json.each do |name, value|
-      player = @draft_helper.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, 
-                                               :position => value["position"], :player_type => value["type"], :user => @draft_helper.user })
+      player = Player.where({ :name => name, :position => value["position"], :player_type => value["type"] }).first_or_initialize
       player.set_default_values
 
-      player.process_data_from_json(value["stats"])
+      player.process_data_from_json(value["static_stats"])
       player.player_type = value["player_type"]
       players[name] = player if player.is_valid?
     end
@@ -129,17 +129,16 @@ class ProjectionParser
       name = nil
 
       # TODO: generalize this so don't have to specify all models
-      if model == :steamer || model == :depthcharts || model == :zips
+      if model != :pecota
         result = players.select { |k, v| k == row[0] }
         name = row[0]
-      elsif model == :pecota
+      else 
         result = players.select do |k, v| 
           next if row[1].nil? || row[2].nil?
 
           bool_a = k.include?(row[1]) && k.include?(row[2])
 
           pecota_name = row[2] + ' ' + row[1]
-          name = pecota_name
           bool_b = k.split(' ').reduce(true) { |prev, n| prev && pecota_name.include?(n) }
           
           (bool_a || bool_b)
@@ -148,12 +147,16 @@ class ProjectionParser
 
       if result.empty?
         unless empty_row?(row)
-          player = @draft_helper.players.build({ :league_id => @draft_helper.league, :is_drafted => false, :name => name, 
-                                                 :player_type => type.to_s, :user => @draft_helper.user })
+          if model == :pecota
+            name = row[2] + ' ' + row[1]
+          end
+
+          player = Player.where({ :name => name, :player_type => type.to_s }).first_or_initialize
 
           player.set_default_values
           player.process_data(row, model, type)
-          players[player.name] = player if player.is_valid?
+
+          players[player.name] = player
         end
       else
         result.each do |key, cur_player|
@@ -214,5 +217,23 @@ class ProjectionParser
   def clean_player_lists()
     @batters.delete("BP-ONLY")
     @pitchers.delete("BP-ONLY")
+  end
+
+  def assign_all_pitcher_pos(players)
+    players.each do |name, player|
+      player.assign_pitcher_pos
+    end
+  end
+
+  def save_player_records(players)
+    players.each do |name, player|
+      if player.is_valid?
+        success = player.save
+
+        if !success
+          binding.pry
+        end
+      end
+    end
   end
 end

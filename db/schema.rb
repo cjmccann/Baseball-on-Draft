@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170316022356) do
+ActiveRecord::Schema.define(version: 20170316063206) do
 
   create_table "data_managers", force: :cascade do |t|
     t.integer  "draft_helper_id"
@@ -30,9 +30,11 @@ ActiveRecord::Schema.define(version: 20170316022356) do
   create_table "draft_helpers", force: :cascade do |t|
     t.integer  "league_id"
     t.integer  "user_id"
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
     t.integer  "data_manager_id"
+    t.text     "drafted_player_ids"
+    t.text     "drafted_player_ids_by_team"
   end
 
   add_index "draft_helpers", ["league_id"], name: "index_draft_helpers_on_league_id"
@@ -51,20 +53,12 @@ ActiveRecord::Schema.define(version: 20170316022356) do
     t.string   "name"
     t.string   "position"
     t.string   "player_type"
-    t.integer  "team_id"
-    t.integer  "user_id"
-    t.integer  "draft_helper_id"
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
-    t.boolean  "is_drafted"
-    t.integer  "league_id"
-    t.text     "stats"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.text     "static_stats"
   end
 
-  add_index "players", ["draft_helper_id", "name", "player_type"], name: "index_players_on_draft_helper_id_and_name_and_player_type"
-  add_index "players", ["draft_helper_id", "name"], name: "index_players_on_draft_helper_id_and_name"
-  add_index "players", ["draft_helper_id", "player_type"], name: "index_players_on_draft_helper_id_and_player_type"
-  add_index "players", ["draft_helper_id"], name: "index_players_on_draft_helper_id"
+  add_index "players", ["name", "player_type"], name: "index_players_on_name_and_player_type"
 
   create_table "setting_managers", force: :cascade do |t|
     t.integer  "league_id"
@@ -117,7 +111,6 @@ ActiveRecord::Schema.define(version: 20170316022356) do
 
   create_table "teams", force: :cascade do |t|
     t.string   "name"
-    t.string   "players"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "league_id"

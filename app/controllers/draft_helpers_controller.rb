@@ -4,6 +4,7 @@ class DraftHelpersController < ApplicationController
 
   def show
     @draft_helper = DraftHelper.find(params[:id])
+    binding.pry
     authorize! :read, @draft_helper
   end
 

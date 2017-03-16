@@ -1,17 +1,11 @@
 class Player < ActiveRecord::Base
-  serialize :stats, Hash
+  serialize :static_stats, Hash
 
-  belongs_to :draft_helper
-  belongs_to :league
-  belongs_to :user
-  belongs_to :team
-
-  # validates_uniqueness_of :name, scope: :league_id
-  validates :name, :uniqueness => { :scope => [:draft_helper_id, :player_type] }
+  validates_uniqueness_of :name, scope: :player_type
 
   def set_default_values
     # TODO: initialize the stats Hash with all projection model names -- failed with zips
-    self.stats = {
+    self.static_stats = {
       :steamer => { },
       :depthcharts => { },
       :pecota => { },
@@ -22,7 +16,7 @@ class Player < ActiveRecord::Base
   # TODO: is this needed? unused
   def compute_player_stddevs(averages)
     averages.each do |category, fields|
-      self.stats[:means][category] - fields[:global_avg]
+      self.static_stats[:means][category] - fields[:global_avg]
 
     end
   end
@@ -30,19 +24,19 @@ class Player < ActiveRecord::Base
   # TODO: generalize this for new projection stats as well?
   def process_data_from_json(stats)
     stats["steamer"].each do |category, val|
-      self.stats[:steamer][category.to_sym] = val
+      self.static_stats[:steamer][category.to_sym] = val
     end
 
     stats["depthcharts"].each do |category, val|
-      self.stats[:depthcharts][category.to_sym] = val 
+      self.static_stats[:depthcharts][category.to_sym] = val 
     end
 
     stats["pecota"].each do |category, val|
-      self.stats[:pecota][category.to_sym] = val
+      self.static_stats[:pecota][category.to_sym] = val
     end
 
     stats["zips"].each do |category, val|
-      self.stats[:zips][category.to_sym] = val
+      self.static_stats[:zips][category.to_sym] = val
     end 
   end
 
@@ -62,50 +56,61 @@ class Player < ActiveRecord::Base
     end
 
     curr_model.each do |key, value|
-      self.stats[model][key] = data[value]
+      if key == :name || key == :firstname || key == :lastname
+        self.static_stats[model][key] = data[value]
+      else
+        self.static_stats[model][key] = data[value].to_f
+      end
     end
   end
 
   def assign_pitcher_pos()
-    if self.stats[:means][:ip] > 80
+    sp_inning_minimum = 80
+
+    if ((self.static_stats[:steamer][:ip] && self.static_stats[:steamer][:ip] > sp_inning_minimum ) || 
+       (self.static_stats[:depthcharts][:ip] && self.static_stats[:depthcharts][:ip] > sp_inning_minimum ) ||
+       (self.static_stats[:zips][:ip] && self.static_stats[:zips][:ip] > sp_inning_minimum ) ||
+       (self.static_stats[:pecota][:ip] && self.static_stats[:pecota][:ip] > sp_inning_minimum ))
       self.position = "SP"
     else
       self.position = "RP"
     end
   end
 
-  def compute_quality_starts()
+  def compute_quality_starts(means)
     # assumption: 4.5 era => 50% QS rate
     # compute this current player's QS rate based on this assumption
     
-    qs_rate = (1 - ((0.5 * self.stats[:means][:era]) / 4.5))
-    self.stats[:means][:qs] = self.stats[:means][:gs] * qs_rate
+    qs_rate = (1 - ((0.5 * means[:era]) / 4.5))
+    means[:qs] = means[:gs] * qs_rate
   end
 
   def is_valid?()
     min_pa = 200
     min_ip = 40
 
-    has_min_pa = (self.stats[:steamer][:pa].to_f > min_pa || self.stats[:depthcharts][:pa].to_f > min_pa || self.stats[:pecota][:pa].to_f > min_pa )
-    has_min_ip = (self.stats[:steamer][:ip].to_f > min_ip || self.stats[:depthcharts][:ip].to_f > min_ip || self.stats[:pecota][:ip].to_f > min_ip )
+    has_min_pa = (self.static_stats[:steamer][:pa].to_f > min_pa || self.static_stats[:depthcharts][:pa].to_f > min_pa || 
+                  self.static_stats[:pecota][:pa].to_f > min_pa || self.static_stats[:zips][:pa].to_f > min_pa)
+    has_min_ip = (self.static_stats[:steamer][:ip].to_f > min_ip || self.static_stats[:depthcharts][:ip].to_f > min_ip || 
+                  self.static_stats[:pecota][:ip].to_f > min_ip || self.static_stats[:zips][:ip].to_f > min_ip)
 
     return (has_min_pa || has_min_ip)
   end
 
-  def compute_zscores(averages, stddevs)
+  def compute_zscores(averages, stddevs, dynamic_stats)
     zscores = { }
 
-    self.stats[:means].each do |category, value|
+    dynamic_stats[:means].each do |category, value|
       zscores[category] = (value - averages[category][:global_avg]) / stddevs[category]
     end
 
-    self.stats[:current_zscores] = zscores
+    dynamic_stats[:current_zscores] = zscores
   end
 
-  def compute_percentile()
+  def compute_percentile(dynamic_stats)
     percentiles = { }
 
-    self.stats[:current_zscores].each do |category, value|
+    dynamic_stats[:current_zscores].each do |category, value|
       if self.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
                            category == :fip || category == :dra || category == :hr || category == :h )
         percentiles[category] = 100 - get_percentile(value)
@@ -114,15 +119,15 @@ class Player < ActiveRecord::Base
       end
     end
 
-    self.stats[:current_percentiles] = percentiles
+    dynamic_stats[:current_percentiles] = percentiles
   end
 
   # TODO: refactor and combine with compute zscore
-  def get_zscore_subset(averages, stddevs)
+  def get_zscore_subset(averages, stddevs, dynamic_stats)
     zscores = { }
 
     averages.each do |category, obj|
-      zscores[category] = (self.stats[:means][category] - obj[:global_avg]) / stddevs[category]
+      zscores[category] = (dynamic_stats[:means][category] - obj[:global_avg]) / stddevs[category]
     end
 
     return zscores
@@ -166,23 +171,18 @@ class Player < ActiveRecord::Base
     # 1-sum
   end
 
-  def get_absolute_percentile_sum(target_stats)
+  def get_absolute_percentile_sum(target_stats, dynamic_stats)
     sum = 0.0
 
     target_stats[self.player_type.to_sym].each do |category|
-      binding.pry if self.stats[:current_percentiles][category].nil?
-      sum += self.stats[:current_percentiles][category]
+      if dynamic_stats[:current_percentiles][category].nil?
+        sum += 0
+      else 
+        sum += dynamic_stats[:current_percentiles][category]
+      end
     end
 
     return sum
-  end
-
-  def is_drafted?
-    self.is_drafted
-  end
-
-  def set_drafted
-    @drafted = true
   end
 
   def matches_position?(pos)

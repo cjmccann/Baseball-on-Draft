@@ -1,7 +1,8 @@
 Dir[File.join(Rails.root, 'lib', 'stats', '**', '*.rb')].each { |f| require_dependency f }
 
 class DraftHelper < ActiveRecord::Base
-  after_create :generate_stats
+
+  after_create :set_drafted_player_id_hashes, :generate_relative_stats
 
   belongs_to :league
   belongs_to :user
@@ -9,34 +10,43 @@ class DraftHelper < ActiveRecord::Base
   has_one :setting_manager, through: :league
   has_one :data_manager
   has_many :teams, through: :league
-  has_many :players, dependent: :destroy, autosave: false
+
+  serialize :drafted_player_ids, Hash
+  serialize :drafted_player_ids_by_team, Hash
 
   def regenerate
   end
 
   def pitchers
-    Player.where( { draft_helper: self, player_type: "pit" } )
+    Player.where( { player_type: "pit" } )
   end
 
   def batters
-    Player.where( { draft_helper: self, player_type: "bat" } )
+    Player.where( { player_type: "bat" } )
   end
 
   def all_players
-    Player.where( { draft_helper: self } )
+    Player.all
   end
 
   private
-  def generate_stats
+  def set_drafted_player_id_hashes
+    drafted_player_ids_by_team_temp = { }
+
+    self.league.teams do |team|
+      drafted_player_ids_by_team_temp[team.name] = [ ]
+    end
+
+    self.drafted_player_ids_by_team = drafted_player_ids_by_team_temp
+    self.drafted_player_ids = { }
+  end
+
+  def generate_relative_stats
     LeagueSettings.set_league_settings(self.league.setting_manager.convert_all_settings_to_hash)
-    parser = ProjectionParser.new(self)
     data_manager = self.build_data_manager( { draft_helper: self, league: self.league, user: self.user,
                                               target_stats: LeagueSettings.get_stats, 
                                               batter_slots: LeagueSettings.get_positions[:bat],
                                               pitcher_slots: LeagueSettings.get_positions[:pit] } )
-    binding.pry
-    data_manager.batters = parser.batters.values
-    data_manager.pitchers = parser.pitchers.values
     data_manager.save
     self.save
   end
