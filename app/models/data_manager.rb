@@ -69,7 +69,7 @@ class DataManager < ActiveRecord::Base
             deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player)
             player_values[player.id] = { :value => deltas_obj[:deltas_magnitude].round(3), 
                                          :categories => deltas_obj[:deltas][player.player_type.to_sym],
-                                         :name => player.name, :player_type => player.player_type }
+                                         :name => player.name, :player_type => player.player_type, :position => player.position }
           end
         end
       end
@@ -86,7 +86,7 @@ class DataManager < ActiveRecord::Base
           percentiles_obj = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
           player_values[player.id] = { :value => percentiles_obj[:sum].round(3),
                                        :categories => percentiles_obj[:percentiles][player.player_type],
-                                       :name => player.name, :player_type => player.player_type }
+                                       :name => player.name, :player_type => player.player_type, :position => player.position }
         end
       end
     end
@@ -104,7 +104,7 @@ class DataManager < ActiveRecord::Base
           percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
           player_values[player.id] = { :value => (percentile_sum[:sum] * self.positional_adjustments[player.position]).round(3), 
                                        :categories => percentile_sum[:percentiles][player.player_type],
-                                       :name => player.name, :player_type => player.player_type }
+                                       :name => player.name, :player_type => player.player_type, :position => player.position }
         end
       end
     end
@@ -125,12 +125,24 @@ class DataManager < ActiveRecord::Base
 
           player_values[player.name] = { :value => ((percentile_sum[:sum] * pos_adj) * (1.0 + self.league.my_team.remaining_positional_impact(player.position))).round(3), 
                                          :categories => percentile_sum[:percentiles][player.player_type],
-                                         :name => player.name, :player_type => player.player_type }
+                                         :name => player.name, :player_type => player.player_type, :position => player.position }
         end
       end 
     end
 
     return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+  end
+
+  def batter_slots
+    self.league.setting_manager.get_positions[:bat]
+  end
+
+  def pitcher_slots
+    self.league.setting_manager.get_positions[:pit]
+  end
+
+  def target_stats
+    self.league.setting_manager.get_stats
   end
 
   private
@@ -437,15 +449,5 @@ class DataManager < ActiveRecord::Base
     end
   end
 
-  def target_stats
-    self.league.setting_manager.get_stats
-  end
 
-  def batter_slots
-    self.league.setting_manager.get_positions[:bat]
-  end
-
-  def pitcher_slots
-    self.league.setting_manager.get_positions[:pit]
-  end
 end

@@ -1,4 +1,5 @@
 <%= stylesheet_link_tag params[:controller] %>
+<%= javascript_include_tag params[:controller] %>
 
 <h1 style="text-align:center;">Draft Helper</h1>
 
@@ -61,13 +62,20 @@
 </div>
 
 <div id="availablePlayers" style="float:left; margin:0; width:100%;">
-  <div style="text-align:center;">
-    <h2>Available players based on cumulative percentile difference</h2>
-  </div>
 
   <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
+    <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
+    <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin: 0 20px;' %>
+
+    <label style="margin: 0 20px;">Position</label>
+    <% pos_options = ['All'] + @draft_helper.data_manager.batter_slots.keys + @draft_helper.data_manager.pitcher_slots.keys %>
+    <%= select_tag 'position', options_for_select(pos_options, 'All'), :onchange => 'filterByPosition(this)' %>
   </div>
-  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
+
+  <div id="availablePlayersCumulative" style="float:left; margin:20px; width:100%;">
+    <div style="text-align:center;">
+      <h2 style="margin:50px;">Available players based on cumulative percentile difference</h2>
+    </div>
     <table style="text-align:center;">
         <tr>
           <th>Name</th>
@@ -86,7 +94,8 @@
         <% @sorted_players.each_with_index do |player, index| %>
           <% break if index > 300 %>
 
-          <tr>
+          <% player[1][:position].nil? ? position = '' : position = player[1][:position] %>
+          <tr class="<%= "player " + position %>">
             <td><%= player[1][:name] %></td>
             <td><%= player[1][:value] %></td>
             <% category_order.each_with_index do |data, index| %>
@@ -110,16 +119,11 @@
         <% end %>
     </table>
   </div>
-</div>
 
-<div id="availablePlayers" style="float:left; margin:0; width:100%;">
-  <div style="text-align:center;">
-    <h2>Available players based on absolute percentiles</h2>
-  </div>
-
-  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
-  </div>
-  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
+  <div id="availablePlayersAbsolute" style="float:left; margin:20px; width:100%; display: none;">
+    <div style="text-align:center;">
+      <h2 style="margin:50px;">Available players based on absolute percentiles</h2>
+    </div>
     <table style="text-align:center;">
         <tr>
           <th>Name</th>
@@ -138,7 +142,8 @@
         <% @sorted_players_absolute.each_with_index do |player, index| %>
           <% break if index > 300 %>
 
-          <tr>
+          <% player[1][:position].nil? ? position = '' : position = player[1][:position] %>
+          <tr class="<%= "player " + position %>">
             <td><%= player[1][:name] %></td>
             <td><%= player[1][:value] %></td>
             <% category_order.each_with_index do |data, index| %>
@@ -162,17 +167,12 @@
         <% end %>
     </table>
   </div>
-</div>
 
+  <div id="availablePlayersAbsolutePos" style="float:left; margin:20px; width:100%; display:none;">
+    <div style="text-align:center;">
+      <h2 style="margin:50px;">Available players based on absolute percentiles with positional adjustments</h2>
+    </div>
 
-<div id="availablePlayers" style="float:left; margin:0; width:100%;">
-  <div style="text-align:center;">
-    <h2>Available players based on absolute percentiles with positional adjustment</h2>
-  </div>
-
-  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
-  </div>
-  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
     <table style="text-align:center;">
         <tr>
           <th>Name</th>
@@ -191,7 +191,8 @@
         <% @sorted_players_pos_adj.each_with_index do |player, index| %>
           <% break if index > 300 %>
 
-          <tr>
+          <% player[1][:position].nil? ? position = '' : position = player[1][:position] %>
+          <tr class="<%= "player " + position %>">
             <td><%= player[1][:name] %></td>
             <td><%= player[1][:value] %></td>
             <% category_order.each_with_index do |data, index| %>
@@ -215,17 +216,12 @@
         <% end %>
     </table>
   </div>
-</div>
 
+  <div id="availablePlayersAbsolutePosSlot" style="float:left; margin:20px; width:100%; display:none;">
+    <div style="text-align:center;">
+      <h2 style="margin:50px;">Available players based on positional adjustments and slot adjustments</h2>
+    </div>
 
-<div id="availablePlayers" style="float:left; margin:0; width:100%;">
-  <div style="text-align:center;">
-    <h2>Available players based on position and slot adjustments</h2>
-  </div>
-
-  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
-  </div>
-  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
     <table style="text-align:center;">
         <tr>
           <th>Name</th>
@@ -244,7 +240,8 @@
         <% @sorted_players_pos_slot_adj.each_with_index do |player, index| %>
           <% break if index > 300 %>
 
-          <tr>
+          <% player[1][:position].nil? ? position = '' : position = player[1][:position] %>
+          <tr class="<% "player " + position %>">
             <td><%= player[1][:name] %></td>
             <td><%= player[1][:value] %></td>
             <% category_order.each_with_index do |data, index| %>
@@ -268,4 +265,5 @@
         <% end %>
     </table>
   </div>
+
 </div>
