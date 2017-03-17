@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170316063206) do
+ActiveRecord::Schema.define(version: 20170317012627) do
 
   create_table "data_managers", force: :cascade do |t|
     t.integer  "draft_helper_id"
@@ -20,11 +20,13 @@ ActiveRecord::Schema.define(version: 20170316063206) do
     t.text     "averages"
     t.text     "stddevs"
     t.text     "positional_adjustments"
-    t.text     "target_stats"
-    t.text     "batter_slots"
-    t.text     "pitcher_slots"
     t.datetime "created_at",             null: false
     t.datetime "updated_at",             null: false
+    t.text     "means"
+    t.text     "current_zscores"
+    t.text     "current_percentiles"
+    t.text     "initial_zscores"
+    t.text     "initial_percentiles"
   end
 
   create_table "draft_helpers", force: :cascade do |t|
@@ -111,10 +113,15 @@ ActiveRecord::Schema.define(version: 20170316063206) do
 
   create_table "teams", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
     t.integer  "league_id"
     t.integer  "user_id"
+    t.text     "batters"
+    t.text     "pitchers"
+    t.text     "batter_slots"
+    t.text     "pitcher_slots"
+    t.text     "team_percentiles"
   end
 
   create_table "users", force: :cascade do |t|
