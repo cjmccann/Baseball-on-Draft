@@ -8,5 +8,15 @@ class League < ActiveRecord::Base
   validates :name, presence: true,
     length: { minimum: 5 }
 
-  attr_accessor :my_team
+  after_create :init_setting_manager
+
+  def my_team
+    self.teams.where( { :name => "My Team" } ).first
+  end
+
+  private
+  def init_setting_manager
+    self.build_setting_manager( { :user => self.user } )
+    self.setting_manager.save
+  end
 end

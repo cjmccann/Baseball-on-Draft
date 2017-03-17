@@ -29,24 +29,21 @@ class DraftHelper < ActiveRecord::Base
     Player.all
   end
 
+  def set_drafted(team, player)
+    self.drafted_player_ids_by_team[team.id] = [] if self.drafted_player_ids_by_team[team.id].nil?
+    self.drafted_player_ids_by_team[team.id].push(player.id)
+
+    self.drafted_player_ids[player.id] = true
+  end
+
   private
   def set_drafted_player_id_hashes
-    drafted_player_ids_by_team_temp = { }
-
-    self.league.teams do |team|
-      drafted_player_ids_by_team_temp[team.name] = [ ]
-    end
-
-    self.drafted_player_ids_by_team = drafted_player_ids_by_team_temp
     self.drafted_player_ids = { }
+    self.drafted_player_ids_by_team = { }
   end
 
   def generate_relative_stats
-    LeagueSettings.set_league_settings(self.league.setting_manager.convert_all_settings_to_hash)
-    data_manager = self.build_data_manager( { draft_helper: self, league: self.league, user: self.user,
-                                              target_stats: LeagueSettings.get_stats, 
-                                              batter_slots: LeagueSettings.get_positions[:bat],
-                                              pitcher_slots: LeagueSettings.get_positions[:pit] } )
+    data_manager = self.build_data_manager( { draft_helper: self, league: self.league, user: self.user } )
     data_manager.save
     self.save
   end

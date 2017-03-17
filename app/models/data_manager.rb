@@ -6,17 +6,26 @@ class DataManager < ActiveRecord::Base
   serialize :averages, Hash
   serialize :stddevs, Hash
   serialize :positional_adjustments, Hash
-  serialize :target_stats, Hash
-  serialize :batter_slots, Hash
-  serialize :pitcher_slots, Hash
+
+  serialize :means, Hash
+  serialize :current_zscores, Hash
+  serialize :current_percentiles, Hash
+  serialize :initial_zscores, Hash
+  serialize :initial_percentiles, Hash
 
   # after_create :init_dynamic_stats
   # before_save :set_default_values
 
-  attr_accessor :dynamic_stats, :dynamic_stats_init
+  attr_accessor :dynamic_stats_init
 
   def set_default_values
     @dynamic_stats_init = true
+
+    self.means = { }
+    self.initial_zscores= { }
+    self.initial_percentiles = { }
+    self.current_zscores = { }
+    self.current_percentiles = { }
 
     compute_weighted_means(batters)
     compute_weighted_means(pitchers)
@@ -51,14 +60,81 @@ class DataManager < ActiveRecord::Base
     set_positional_adjustments()
   end
 
-  private
-  def ensure_dynamic_stats_for_player(player)
-    if @dynamic_stats.nil?
-      @dynamic_stats = { }
+  def get_sorted_players_list(pos = nil)
+      player_values = { }
+
+      all_players.each do |player|
+        unless is_drafted?(player)
+          if pos.nil? || player.matches_position?(pos)
+            deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player)
+            player_values[player.id] = { :value => deltas_obj[:deltas_magnitude], 
+                                         :categories => deltas_obj[:deltas][player.player_type.to_sym],
+                                         :player => player }
+          end
+        end
+      end
+
+      return player_values.sort_by { |name, obj| (-1) * obj[:value] } 
+  end 
+
+  def get_sorted_players_list_absolute_percentiles(pos = nil)
+    player_values = { } 
+
+    all_players.each do |player|
+      unless is_drafted?(player)
+        if pos.nil? || player.matches_position?(pos)
+          player_values[player.id] = { :value => get_absolute_percentile_sum(player, self.current_percentiles[player.id]), :player => player }
+        end
+      end
     end
 
-    if @dynamic_stats[player.id].nil?
-      @dynamic_stats[player.id] = { }
+    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+  end
+
+  def get_sorted_players_list_with_pos_adjustments(pos = nil)
+    player_values = { } 
+
+    all_players.each do |player|
+      unless is_drafted?(player)
+        if pos.nil? || player.matches_position?(pos)
+          next if self.positional_adjustments[player.position].nil? 
+          percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
+          player_values[player.id] = { :value => percentile_sum * self.positional_adjustments[player.position], :player => player }
+        end
+      end
+    end
+
+    return player_values.sort_by { |name, obj|  (-1) * obj[:value] }
+  end
+
+  def get_sorted_players_list_with_pos_adjustments_plus_slots(pos = nil, team = nil)
+    player_values = { }
+
+    all_players.each do |player|
+      unless is_drafted?(player)
+        if pos.nil? || player.matches_position?(pos)
+          next if self.positional_adjustments[player.position].nil?
+
+          percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
+          pos_adj = self.positional_adjustments[player.position]
+
+          player_values[player.name] = { :value => (percentile_sum * pos_adj) * (1.0 + team.remaining_positional_impact(player.position)), 
+                                         :players => player }
+        end
+      end 
+    end
+
+    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+  end
+
+  private
+  def ensure_dynamic_stats_for_player(field, player)
+    if self[field].nil?
+      self[field] = { }
+    end
+
+    if self[field][player.id].nil?
+      self[field][player.id] = { }
     end
   end
 
@@ -99,41 +175,38 @@ class DataManager < ActiveRecord::Base
               means[category] = 0.0
             end
 
-            means[category] += stat_val.to_f * model_weights[model]
+            means[category] += (stat_val.to_f * model_weights[model]).round(3)
           end
         end
       end
 
-      ensure_dynamic_stats_for_player(player)
-      @dynamic_stats[player.id][:means] = means
+      ensure_dynamic_stats_for_player(:means, player)
+      self.means[player.id] = means
     end
   end
   
   def compute_average_weighted_means(averages, players)
+    values = { }
+
     players.each do |player|
       next if is_drafted?(player)
 
-      ensure_dynamic_stats_for_player(player)
-      @dynamic_stats[player.id][:means].each do |category, value|
-        averages = { } if averages.nil?
-        averages[category] = { } if averages[category].nil?
+      ensure_dynamic_stats_for_player(:means, player)
+      self.means[player.id].each do |category, value|
+        values[category] = [ ] if values[category].nil?
 
-        category = averages[category]
-
-        category[:values].nil? ? category[:values] = [value] : category[:values].push(value)
-        category[:global_avg] = 0.0 if category[:global_avg].nil?
+        values[category].push(value)
       end
     end
 
-    averages.each do |category, data|
+    values.each do |category, data|
       sum = 0.0
 
-      data[:values].each do |value|
+      data.each do |value|
         sum += value.to_f
       end
 
-
-      data[:global_avg] = sum / data[:values].length
+      averages[category] = (sum / data.length).round(3)
     end
   end
 
@@ -143,15 +216,15 @@ class DataManager < ActiveRecord::Base
     players.each do |player|
       next if is_drafted?(player)
 
-      ensure_dynamic_stats_for_player(player)
-      @dynamic_stats[player.id][:means].each do |category, value|
-        square_dist = (value - averages[category][:global_avg]) ** 2
+      ensure_dynamic_stats_for_player(:means, player)
+      self.means[player.id].each do |category, value|
+        square_dist = (value - averages[category]) ** 2
         square_dists[category].nil? ? square_dists[category] = [square_dist] : square_dists[category].push(square_dist)
       end
     end
 
     square_dists.each do |category, values|
-      stddevs[category] = Math.sqrt(values.reduce(0, :+) / values.length)
+      stddevs[category] = Math.sqrt(values.reduce(0, :+) / values.length).round(3)
     end
   end
 
@@ -159,82 +232,79 @@ class DataManager < ActiveRecord::Base
     players.each do |player|
       next if is_drafted?(player)
 
-      ensure_dynamic_stats_for_player(player)
-      player.compute_zscores(self.averages[type], self.stddevs[type], @dynamic_stats[player.id])
+      ensure_dynamic_stats_for_player(:current_zscores, player)
+      self.current_zscores[player.id] = compute_zscores(self.averages[type], self.stddevs[type], self.means[player.id])
     end
+  end
+
+  def compute_zscores(averages, stddevs, means)
+    zscores = { }
+
+    means.each do |category, value|
+      zscores[category] = ((value - averages[category]) / stddevs[category]).round(3)
+    end
+
+    zscores
   end
 
   def compute_all_percentiles(players)
     players.each do |player|
       next if is_drafted?(player)
 
-      ensure_dynamic_stats_for_player(player)
-      player.compute_percentile(@dynamic_stats[player.id])
+      ensure_dynamic_stats_for_player(:current_percentiles, player)
+      self.current_percentiles[player.id] = compute_percentile(player, self.current_zscores[player.id])
     end
   end
 
-  def get_sorted_players_list_absolute_percentiles(pos = nil)
-    player_values = { } 
+  def compute_percentile(player, zscores)
+    percentiles = { }
 
-    all_players.each do |player|
-      unless is_drafted?(player)
-        if pos.nil? || player.matches_position?(pos)
-          player_values[player.id] = { :value => player.get_absolute_percentile_sum(self.target_stats, @dynamic_stats[player.id]), :player => player }
-        end
+    zscores.each do |category, value|
+      if player.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
+                           category == :fip || category == :dra || category == :hr || category == :h )
+        percentiles[category] = 100 - get_percentile(value)
+      else
+        percentiles[category] = get_percentile(value)
       end
     end
 
-    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+    percentiles
   end
 
-  def get_sorted_players_list_with_pos_adjustments(pos = nil)
-    player_values = { } 
+  # http://stackoverflow.com/questions/31875909/z-score-to-probability-and-vice-verse-in-ruby
+  def get_percentile(z)
+    return 0 if z < -6.5
+    return 1 if z > 6.5
 
-    all_players.each do |player|
-      unless is_drafted?(player)
-        if pos.nil? || player.matches_position?(pos)
-          next if self.positional_adjustments[player.position].nil? 
-          percentile_sum = player.get_absolute_percentile_sum(self.target_stats, @dynamic_stats[player.id])
-          player_values[player.id] = { :value => percentile_sum * self.positional_adjustments[player.position], :player => player }
-        end
-      end
+    factk = 1
+    sum = 0
+    term = 1
+    k = 0
+
+    loopStop = Math.exp(-23)
+    while term.abs > loopStop do
+      term = 0.3989422804 * ((-1)**k) * (z**k) / (2*k+1) / (2**k) * (z**(k+1)) /factk
+      sum += term
+      k += 1
+      factk *= k
     end
 
-    return player_values.sort_by { |name, obj|  (-1) * obj[:value] }
+    sum += 0.5
+    return (sum * 100).round(3)
+    # 1-sum
   end
-
-  def get_sorted_players_list_with_pos_adjustments_plus_slots(pos = nil, team = nil)
-    player_values = { }
-
-    all_players.each do |player|
-      unless is_drafted?(player)
-        if pos.nil? || player.matches_position?(pos)
-          next if self.positional_adjustments[player.position].nil?
-
-          percentile_sum = player.get_absolute_percentile_sum(self.target_stats, @dynamic_stats[player.id])
-          pos_adj = self.positional_adjustments[player.position]
-
-          player_values[player.name] = { :value => (percentile_sum * pos_adj) * (1.0 + team.remaining_positional_impact(player.position)), 
-                                         :players => player }
-        end
-      end 
-    end
-
-    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
-  end
-
 
   def set_positional_adjustments()
     volatilities = { :bat => { }, :pit => { } }
     subset_size = 10
 
-    self.batter_slots.each do |pos, _|
+    batter_slots.each do |pos, _|
       # TODO: Excluding RF/LF/CF due to league settings, only need OF slots
       next if pos == "CI" || pos == "MI" || pos == "UTIL" || pos == "RF" || pos == "LF" || pos == "CF"
       volatilities[:bat][pos] = get_volatility_for_position(pos, subset_size)
     end
 
-    self.pitcher_slots.each do |pos, _|
+    pitcher_slots.each do |pos, _|
       next if pos == "P"
       volatilities[:pit][pos] = get_volatility_for_position(pos, subset_size)
     end
@@ -266,7 +336,7 @@ class DataManager < ActiveRecord::Base
       puts "Players list is empty when getting variance."
     end
 
-    get_volatility_for_players(players.values, self.target_stats[type])
+    get_volatility_for_players(players.values, target_stats[type])
   end
 
   def get_volatility_for_players(players, target_stats)
@@ -286,7 +356,7 @@ class DataManager < ActiveRecord::Base
 
     positional_volatility = 0.0
 
-    target_averages.each do |category, obj|
+    target_averages.each do |category, value|
       #if stddev for category is 0, the category is always 0 with no variability, and adds no volatility
       # next if target_stddevs[category] == 0.0
 
@@ -294,7 +364,7 @@ class DataManager < ActiveRecord::Base
       if target_stddevs[category] == 0.0
         positional_volatility += 1.0
       else
-        positional_volatility += (target_stddevs[category] / obj[:global_avg])
+        positional_volatility += (target_stddevs[category] / value)
       end 
     end
 
@@ -309,22 +379,44 @@ class DataManager < ActiveRecord::Base
 
   def compute_quality_starts(players)
     players.each do |player|
-      ensure_dynamic_stats_for_player(player)
-      player.compute_quality_starts(@dynamic_stats[player.id][:means])
+      ensure_dynamic_stats_for_player(:means, player)
+      player.compute_quality_starts(self.means[player.id])
     end
+  end
+
+  def get_absolute_percentile_sum(player, current_percentiles)
+    sum = 0.0
+
+    target_stats[player.player_type.to_sym].each do |category|
+      if current_percentiles[category].nil?
+        sum += 0
+      else 
+        sum += current_percentiles[category]
+      end
+    end
+
+    return sum
   end
 
   def set_initial_zscores_and_percentiles()
     batters.each do |player|
-      ensure_dynamic_stats_for_player(player)
-      @dynamic_stats[player.id][:initial_zscores] = @dynamic_stats[player.id][:current_zscores]
-      @dynamic_stats[player.id][:initial_percentiles] = @dynamic_stats[player.id][:current_percentiles]
+      ensure_dynamic_stats_for_player(:initial_zscores, player)
+      ensure_dynamic_stats_for_player(:current_zscores, player)
+      ensure_dynamic_stats_for_player(:initial_percentiles, player)
+      ensure_dynamic_stats_for_player(:current_percentiles, player)
+
+      self.initial_zscores[player.id] = self.current_zscores[player.id]
+      self.initial_percentiles[player.id] = self.current_percentiles[player.id]
     end
 
     pitchers.each do |player|
-      ensure_dynamic_stats_for_player(player)
-      @dynamic_stats[player.id][:initial_zscores] = @dynamic_stats[player.id][:current_zscores]
-      @dynamic_stats[player.id][:initial_percentiles] = @dynamic_stats[player.id][:current_percentiles]
+      ensure_dynamic_stats_for_player(:initial_zscores, player)
+      ensure_dynamic_stats_for_player(:current_zscores, player)
+      ensure_dynamic_stats_for_player(:initial_percentiles, player)
+      ensure_dynamic_stats_for_player(:current_percentiles, player)
+
+      self.initial_zscores[player.id] = self.current_zscores[player.id]
+      self.initial_percentiles[player.id] = self.current_percentiles[player.id]
     end
   end
 
@@ -334,5 +426,17 @@ class DataManager < ActiveRecord::Base
     else 
       self.draft_helper.drafted_player_ids[player.id] ? true : false
     end
+  end
+
+  def target_stats
+    self.league.setting_manager.get_stats
+  end
+
+  def batter_slots
+    self.league.setting_manager.get_positions[:bat]
+  end
+
+  def pitcher_slots
+    self.league.setting_manager.get_positions[:pit]
   end
 end

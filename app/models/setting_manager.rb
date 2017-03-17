@@ -1,12 +1,14 @@
 class SettingManager < ActiveRecord::Base
   before_create :set_default_values
-  # http://stackoverflow.com/questions/23673513/saving-multiple-records-with-a-single-form-in-rails-4
+  after_create :create_first_team
 
   belongs_to :league
   belongs_to :user
+  after_save :update_teams
 
   attr_accessor :current_settings
   mattr_accessor :defaults
+
 
   self.defaults = { 
     :batter_positions => {
@@ -62,8 +64,12 @@ class SettingManager < ActiveRecord::Base
   }
 
   def convert_all_settings_to_hash
-    hash = { :positions => { :bat => { }, :pit => { } }, :stats => { :bat => [], :pit => [] } }
-    
+    { :positions => convert_positions_to_hash, :stats => convert_stats_to_hash }
+  end
+
+  def convert_positions_to_hash
+    hash = { :positions => { :bat => { }, :pit => { } } }
+
     self.defaults[:batter_positions].each do |position, _|
       hash[:positions][:bat][position.split('_')[1]] = self[position]
     end
@@ -71,6 +77,12 @@ class SettingManager < ActiveRecord::Base
     self.defaults[:pitcher_positions].each do |position, count|
       hash[:positions][:pit][position.split('_')[1]] = self[position]
     end
+
+    hash[:positions]
+  end
+
+  def convert_stats_to_hash
+    hash = { :stats => { :bat => [ ], :pit => [ ] } }
 
     self.defaults[:batter_stats].each do |category, _|
       if self[category]
@@ -84,7 +96,16 @@ class SettingManager < ActiveRecord::Base
       end
     end
 
-    hash
+
+    hash[:stats]
+  end
+
+  def get_stats
+    convert_stats_to_hash
+  end
+
+  def get_positions
+    convert_positions_to_hash
   end
 
   private
@@ -104,5 +125,14 @@ class SettingManager < ActiveRecord::Base
     self.defaults[:pitcher_stats].each do |category, bool|
       self[category] = bool
     end
+  end
+
+  def create_first_team
+    team = self.league.teams.build( { :name => 'My Team', :league => self.league, :user => self.league.user } )
+    team.save
+  end
+
+  def update_teams
+    binding.pry
   end
 end

@@ -5,6 +5,8 @@ class DraftHelpersController < ApplicationController
   def show
     @draft_helper = DraftHelper.find(params[:id])
     @draft_helper.data_manager.set_default_values
+    # @sorted_player = @draft_helper.data_manager.get_sorted_players_list
+    binding.pry
     authorize! :read, @draft_helper
   end
 

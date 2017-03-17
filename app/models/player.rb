@@ -86,8 +86,8 @@ class Player < ActiveRecord::Base
   end
 
   def is_valid?()
-    min_pa = 200
-    min_ip = 40
+    min_pa = 350
+    min_ip = 55
 
     has_min_pa = (self.static_stats[:steamer][:pa].to_f > min_pa || self.static_stats[:depthcharts][:pa].to_f > min_pa || 
                   self.static_stats[:pecota][:pa].to_f > min_pa || self.static_stats[:zips][:pa].to_f > min_pa)
@@ -97,30 +97,6 @@ class Player < ActiveRecord::Base
     return (has_min_pa || has_min_ip)
   end
 
-  def compute_zscores(averages, stddevs, dynamic_stats)
-    zscores = { }
-
-    dynamic_stats[:means].each do |category, value|
-      zscores[category] = (value - averages[category][:global_avg]) / stddevs[category]
-    end
-
-    dynamic_stats[:current_zscores] = zscores
-  end
-
-  def compute_percentile(dynamic_stats)
-    percentiles = { }
-
-    dynamic_stats[:current_zscores].each do |category, value|
-      if self.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
-                           category == :fip || category == :dra || category == :hr || category == :h )
-        percentiles[category] = 100 - get_percentile(value)
-      else
-        percentiles[category] = get_percentile(value)
-      end
-    end
-
-    dynamic_stats[:current_percentiles] = percentiles
-  end
 
   # TODO: refactor and combine with compute zscore
   def get_zscore_subset(averages, stddevs, dynamic_stats)
@@ -148,28 +124,6 @@ class Player < ActiveRecord::Base
     return percentiles
   end
 
-  # http://stackoverflow.com/questions/31875909/z-score-to-probability-and-vice-verse-in-ruby
-  def get_percentile(z)
-    return 0 if z < -6.5
-    return 1 if z > 6.5
-
-    factk = 1
-    sum = 0
-    term = 1
-    k = 0
-
-    loopStop = Math.exp(-23)
-    while term.abs > loopStop do
-      term = 0.3989422804 * ((-1)**k) * (z**k) / (2*k+1) / (2**k) * (z**(k+1)) /factk
-      sum += term
-      k += 1
-      factk *= k
-    end
-
-    sum += 0.5
-    return sum * 100
-    # 1-sum
-  end
 
   def get_absolute_percentile_sum(target_stats, dynamic_stats)
     sum = 0.0
@@ -207,5 +161,4 @@ class Player < ActiveRecord::Base
 
     return false
   end
-
 end
