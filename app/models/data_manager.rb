@@ -67,9 +67,9 @@ class DataManager < ActiveRecord::Base
         unless is_drafted?(player)
           if pos.nil? || player.matches_position?(pos)
             deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player)
-            player_values[player.id] = { :value => deltas_obj[:deltas_magnitude], 
+            player_values[player.id] = { :value => deltas_obj[:deltas_magnitude].round(3), 
                                          :categories => deltas_obj[:deltas][player.player_type.to_sym],
-                                         :player => player }
+                                         :name => player.name, :player_type => player.player_type }
           end
         end
       end
@@ -83,7 +83,10 @@ class DataManager < ActiveRecord::Base
     all_players.each do |player|
       unless is_drafted?(player)
         if pos.nil? || player.matches_position?(pos)
-          player_values[player.id] = { :value => get_absolute_percentile_sum(player, self.current_percentiles[player.id]), :player => player }
+          percentiles_obj = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
+          player_values[player.id] = { :value => percentiles_obj[:sum].round(3),
+                                       :categories => percentiles_obj[:percentiles][player.player_type],
+                                       :name => player.name, :player_type => player.player_type }
         end
       end
     end
@@ -99,7 +102,9 @@ class DataManager < ActiveRecord::Base
         if pos.nil? || player.matches_position?(pos)
           next if self.positional_adjustments[player.position].nil? 
           percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
-          player_values[player.id] = { :value => percentile_sum * self.positional_adjustments[player.position], :player => player }
+          player_values[player.id] = { :value => (percentile_sum[:sum] * self.positional_adjustments[player.position]).round(3), 
+                                       :categories => percentile_sum[:percentiles][player.player_type],
+                                       :name => player.name, :player_type => player.player_type }
         end
       end
     end
@@ -118,8 +123,9 @@ class DataManager < ActiveRecord::Base
           percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
           pos_adj = self.positional_adjustments[player.position]
 
-          player_values[player.name] = { :value => (percentile_sum * pos_adj) * (1.0 + team.remaining_positional_impact(player.position)), 
-                                         :players => player }
+          player_values[player.name] = { :value => ((percentile_sum[:sum] * pos_adj) * (1.0 + self.league.my_team.remaining_positional_impact(player.position))).round(3), 
+                                         :categories => percentile_sum[:percentiles][player.player_type],
+                                         :name => player.name, :player_type => player.player_type }
         end
       end 
     end
@@ -257,6 +263,7 @@ class DataManager < ActiveRecord::Base
   end
 
   def compute_percentile(player, zscores)
+    binding.pry if player.name == "Clayton Kershaw"
     percentiles = { }
 
     zscores.each do |category, value|
@@ -385,17 +392,19 @@ class DataManager < ActiveRecord::Base
   end
 
   def get_absolute_percentile_sum(player, current_percentiles)
-    sum = 0.0
+    vals = { :sum => 0.0, :percentiles => { 'bat' => { }, 'pit' => { } } }
 
     target_stats[player.player_type.to_sym].each do |category|
       if current_percentiles[category].nil?
-        sum += 0
+        vals[:sum] += 0
+        vals[:percentiles][player.player_type][category] = 0
       else 
-        sum += current_percentiles[category]
+        vals[:sum] += current_percentiles[category]
+        vals[:percentiles][player.player_type][category] = current_percentiles[category].round(3)
       end
     end
 
-    return sum
+    return vals
   end
 
   def set_initial_zscores_and_percentiles()

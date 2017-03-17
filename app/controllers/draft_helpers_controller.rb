@@ -4,9 +4,10 @@ class DraftHelpersController < ApplicationController
 
   def show
     @draft_helper = DraftHelper.find(params[:id])
-    @draft_helper.data_manager.set_default_values
-    # @sorted_player = @draft_helper.data_manager.get_sorted_players_list
-    binding.pry
+    @sorted_players = @draft_helper.data_manager.get_sorted_players_list
+    @sorted_players_absolute = @draft_helper.data_manager.get_sorted_players_list_absolute_percentiles
+    @sorted_players_pos_adj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments
+    @sorted_players_pos_slot_adj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots
     authorize! :read, @draft_helper
   end
 

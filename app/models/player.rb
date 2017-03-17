@@ -86,8 +86,8 @@ class Player < ActiveRecord::Base
   end
 
   def is_valid?()
-    min_pa = 350
-    min_ip = 55
+    min_pa = 400
+    min_ip = 50
 
     has_min_pa = (self.static_stats[:steamer][:pa].to_f > min_pa || self.static_stats[:depthcharts][:pa].to_f > min_pa || 
                   self.static_stats[:pecota][:pa].to_f > min_pa || self.static_stats[:zips][:pa].to_f > min_pa)

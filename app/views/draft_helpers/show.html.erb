@@ -1,10 +1,11 @@
 <%= stylesheet_link_tag params[:controller] %>
 
+<h1 style="text-align:center;">Draft Helper</h1>
+
 <div id="teams" style="margin:0; width:100%;">
   <div id="myTeam" style="float:left; margin:20px; width:45%; height:500px; text-align:center;">
     <h2>My Team</h2>
     <table style="margin:auto;" >
-      <thead>
         <tr>
           <th>Player</th>
           <th>StatA</th>
@@ -12,8 +13,6 @@
           <th>StatC</th>
           <th>StatD</th>
         </tr>
-      </thead>
-      <tbody>
         <tr>
           <td>NAME</td>
           <td>1</td>
@@ -29,14 +28,12 @@
           <td>3</td>
           <td>4</td>
         </tr>
-      </tbody>
     </table>
   </div>
 
   <div id="otherTeam" style="float:left; margin:20px; width:45%; height:500px; text-align:center;">
     <h2>Other team</h2>
     <table style="margin:auto;" >
-      <thead>
         <tr>
           <th>Player</th>
           <th>StatA</th>
@@ -44,8 +41,6 @@
           <th>StatC</th>
           <th>StatD</th>
         </tr>
-      </thead>
-      <tbody>
         <tr>
           <td>NAME</td>
           <td>1</td>
@@ -61,46 +56,216 @@
           <td>3</td>
           <td>4</td>
         </tr>
-      </tbody>
     </table>
   </div>
 </div>
 
 <div id="availablePlayers" style="float:left; margin:0; width:100%;">
-  <div style="text-align: center;">
-    <h2>Available Players</h2>
+  <div style="text-align:center;">
+    <h2>Available players based on cumulative percentile difference</h2>
   </div>
 
-  <div id="availablePlayersControls" style="float:left; margin:20px; width:90%">
+  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
   </div>
-  <div id="availablePlayersTable" style="float:left; margin:20px; width:90%;">
-    <table style="margin:auto;" >
-      <thead>
+  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
+    <table style="text-align:center;">
         <tr>
-          <th>Player</th>
-          <th>StatA</th>
-          <th>StatB</th>
-          <th>StatC</th>
-          <th>StatD</th>
+          <th>Name</th>
+          <th>Cumulative % diff</th>
+          <% category_order = [ { }, { } ] %>
+          <% index = 2 %>
+          <% @draft_helper.league.setting_manager.convert_stats_to_hash.each do |type, categories| %>
+            <% categories.each do |category| %>
+              <% category_order.push({ :player_type => type.to_s, :category => category }) %>
+              <th><%= category %></th>
+              <% index += 1 %>
+            <% end %>
+          <% end %>
         </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>NAME</td>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td>4</td>
-        </tr>
+        
+        <% @sorted_players.each_with_index do |player, index| %>
+          <% break if index > 300 %>
 
+          <tr>
+            <td><%= player[1][:name] %></td>
+            <td><%= player[1][:value] %></td>
+            <% category_order.each_with_index do |data, index| %>
+              <% next if index == 0 || index == 1 %>
+
+              <% if player[1][:player_type] == data[:player_type] %>
+                <% td_class = nil %>
+                <% td_class = "baddest" if player[1][:categories][data[:category]] > -100 %>
+                <% td_class = "badder" if player[1][:categories][data[:category]] > -50 %>
+                <% td_class = "bad" if player[1][:categories][data[:category]] > -25 %>
+                <% td_class = "good" if player[1][:categories][data[:category]] > 0 %>
+                <% td_class = "gooder" if player[1][:categories][data[:category]] > 50 %>
+                <% td_class = "goodest" if player[1][:categories][data[:category]] > 75 %>
+                <td class=<%= td_class %>><%= player[1][:categories][data[:category]] %></td>
+              <% else %>
+                <td></td>
+              <% end %>
+            <% end %>
+
+          </tr>
+        <% end %>
+    </table>
+  </div>
+</div>
+
+<div id="availablePlayers" style="float:left; margin:0; width:100%;">
+  <div style="text-align:center;">
+    <h2>Available players based on absolute percentiles</h2>
+  </div>
+
+  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
+  </div>
+  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
+    <table style="text-align:center;">
         <tr>
-          <td>NAME</td>
-          <td>1</td>
-          <td>2</td>
-          <td>3</td>
-          <td>4</td>
+          <th>Name</th>
+          <th>Cumulative % diff</th>
+          <% category_order = [ { }, { } ] %>
+          <% index = 2 %>
+          <% @draft_helper.league.setting_manager.convert_stats_to_hash.each do |type, categories| %>
+            <% categories.each do |category| %>
+              <% category_order.push({ :player_type => type.to_s, :category => category }) %>
+              <th><%= category %></th>
+              <% index += 1 %>
+            <% end %>
+          <% end %>
         </tr>
-      </tbody>
+        
+        <% @sorted_players_absolute.each_with_index do |player, index| %>
+          <% break if index > 300 %>
+
+          <tr>
+            <td><%= player[1][:name] %></td>
+            <td><%= player[1][:value] %></td>
+            <% category_order.each_with_index do |data, index| %>
+              <% next if index == 0 || index == 1 %>
+
+              <% if player[1][:player_type] == data[:player_type] %>
+                <% td_class = nil %>
+                <% td_class = "baddest" if player[1][:categories][data[:category]] > -100 %>
+                <% td_class = "badder" if player[1][:categories][data[:category]] > -50 %>
+                <% td_class = "bad" if player[1][:categories][data[:category]] > -25 %>
+                <% td_class = "good" if player[1][:categories][data[:category]] > 0 %>
+                <% td_class = "gooder" if player[1][:categories][data[:category]] > 50 %>
+                <% td_class = "goodest" if player[1][:categories][data[:category]] > 75 %>
+                <td class=<%= td_class %>><%= player[1][:categories][data[:category]] %></td>
+              <% else %>
+                <td></td>
+              <% end %>
+            <% end %>
+
+          </tr>
+        <% end %>
+    </table>
+  </div>
+</div>
+
+
+<div id="availablePlayers" style="float:left; margin:0; width:100%;">
+  <div style="text-align:center;">
+    <h2>Available players based on absolute percentiles with positional adjustment</h2>
+  </div>
+
+  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
+  </div>
+  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
+    <table style="text-align:center;">
+        <tr>
+          <th>Name</th>
+          <th>Cumulative % diff</th>
+          <% category_order = [ { }, { } ] %>
+          <% index = 2 %>
+          <% @draft_helper.league.setting_manager.convert_stats_to_hash.each do |type, categories| %>
+            <% categories.each do |category| %>
+              <% category_order.push({ :player_type => type.to_s, :category => category }) %>
+              <th><%= category %></th>
+              <% index += 1 %>
+            <% end %>
+          <% end %>
+        </tr>
+        
+        <% @sorted_players_pos_adj.each_with_index do |player, index| %>
+          <% break if index > 300 %>
+
+          <tr>
+            <td><%= player[1][:name] %></td>
+            <td><%= player[1][:value] %></td>
+            <% category_order.each_with_index do |data, index| %>
+              <% next if index == 0 || index == 1 %>
+
+              <% if player[1][:player_type] == data[:player_type] %>
+                <% td_class = nil %>
+                <% td_class = "baddest" if player[1][:categories][data[:category]] > -100 %>
+                <% td_class = "badder" if player[1][:categories][data[:category]] > -50 %>
+                <% td_class = "bad" if player[1][:categories][data[:category]] > -25 %>
+                <% td_class = "good" if player[1][:categories][data[:category]] > 0 %>
+                <% td_class = "gooder" if player[1][:categories][data[:category]] > 50 %>
+                <% td_class = "goodest" if player[1][:categories][data[:category]] > 75 %>
+                <td class=<%= td_class %>><%= player[1][:categories][data[:category]] %></td>
+              <% else %>
+                <td></td>
+              <% end %>
+            <% end %>
+
+          </tr>
+        <% end %>
+    </table>
+  </div>
+</div>
+
+
+<div id="availablePlayers" style="float:left; margin:0; width:100%;">
+  <div style="text-align:center;">
+    <h2>Available players based on position and slot adjustments</h2>
+  </div>
+
+  <div id="availablePlayersControls" style="float:left; margin:20px; width:100%">
+  </div>
+  <div id="availablePlayersTable" style="float:left; margin:20px; width:100%;">
+    <table style="text-align:center;">
+        <tr>
+          <th>Name</th>
+          <th>Cumulative % diff</th>
+          <% category_order = [ { }, { } ] %>
+          <% index = 2 %>
+          <% @draft_helper.league.setting_manager.convert_stats_to_hash.each do |type, categories| %>
+            <% categories.each do |category| %>
+              <% category_order.push({ :player_type => type.to_s, :category => category }) %>
+              <th><%= category %></th>
+              <% index += 1 %>
+            <% end %>
+          <% end %>
+        </tr>
+        
+        <% @sorted_players_pos_slot_adj.each_with_index do |player, index| %>
+          <% break if index > 300 %>
+
+          <tr>
+            <td><%= player[1][:name] %></td>
+            <td><%= player[1][:value] %></td>
+            <% category_order.each_with_index do |data, index| %>
+              <% next if index == 0 || index == 1 %>
+
+              <% if player[1][:player_type] == data[:player_type] %>
+                <% td_class = nil %>
+                <% td_class = "baddest" if player[1][:categories][data[:category]] > -100 %>
+                <% td_class = "badder" if player[1][:categories][data[:category]] > -50 %>
+                <% td_class = "bad" if player[1][:categories][data[:category]] > -25 %>
+                <% td_class = "good" if player[1][:categories][data[:category]] > 0 %>
+                <% td_class = "gooder" if player[1][:categories][data[:category]] > 50 %>
+                <% td_class = "goodest" if player[1][:categories][data[:category]] > 75 %>
+                <td class=<%= td_class %>><%= player[1][:categories][data[:category]] %></td>
+              <% else %>
+                <td></td>
+              <% end %>
+            <% end %>
+
+          </tr>
+        <% end %>
     </table>
   </div>
 </div>

@@ -6,9 +6,7 @@ class SettingManager < ActiveRecord::Base
   belongs_to :user
   after_save :update_teams
 
-  attr_accessor :current_settings
   mattr_accessor :defaults
-
 
   self.defaults = { 
     :batter_positions => {
@@ -130,9 +128,5 @@ class SettingManager < ActiveRecord::Base
   def create_first_team
     team = self.league.teams.build( { :name => 'My Team', :league => self.league, :user => self.league.user } )
     team.save
-  end
-
-  def update_teams
-    binding.pry
   end
 end

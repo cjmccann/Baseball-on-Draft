@@ -15,7 +15,7 @@ class Team < ActiveRecord::Base
   validates :name, presence: true,
     length: { minimum: 1 }
 
-  after_create :set_default_values
+  before_create :set_default_values
 
   def set_default_values
     self.batters = { }
@@ -50,7 +50,15 @@ class Team < ActiveRecord::Base
         if team_percentiles[type].empty?
           target_percentiles[type][category] = 0.0
         else
-          target_percentiles[type][category] = team_percentiles[type][category][:avg_percentile]
+          begin
+            if team_percentiles[type][category].nil? 
+              target_percentiles[type][category] = 0.0
+            else
+              target_percentiles[type][category] = team_percentiles[type][category][:avg_percentile]
+            end
+          rescue Exception
+            binding.pry
+          end
         end
       end
     end
@@ -95,7 +103,7 @@ class Team < ActiveRecord::Base
   end
 
   def update_team_percentiles(player)
-    draft_helper.data_manager.dynamic_stats[player.id][:initial_percentiles].each do |category, percentile|
+    draft_helper.data_manager.initial_percentiles[player.id].each do |category, percentile|
       update_percentile(self.team_percentiles, player.player_type.to_sym, category, percentile)
     end
   end
@@ -125,7 +133,7 @@ class Team < ActiveRecord::Base
         delta = get_percentile_delta(type, category, value)
 
         percentile_deltas[:deltas_magnitude] += delta
-        percentile_deltas[:deltas][type][category] = delta
+        percentile_deltas[:deltas][type][category] = delta.round(3)
       end
     end
 
@@ -141,8 +149,7 @@ class Team < ActiveRecord::Base
   def get_simulated_team_percentiles(player)
     team_percentile_clone = DeepClone.clone(self.team_percentiles)
 
-    binding.pry
-    draft_helper.data_manager.dynamic_stats[player.id][:initial_percentiles].each do |category, percentile|
+    draft_helper.data_manager.initial_percentiles[player.id].each do |category, percentile|
       update_percentile(team_percentile_clone, player.player_type.to_sym, category, percentile)
     end
 

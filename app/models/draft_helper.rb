@@ -44,6 +44,7 @@ class DraftHelper < ActiveRecord::Base
 
   def generate_relative_stats
     data_manager = self.build_data_manager( { draft_helper: self, league: self.league, user: self.user } )
+    data_manager.set_default_values
     data_manager.save
     self.save
   end

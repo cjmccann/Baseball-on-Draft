@@ -3,7 +3,10 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 table {
-    width: 100%;
+    table-layout: fixed;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 thead, tbody { display: block; }
@@ -14,6 +17,36 @@ tbody {
     overflow-x: hidden;
 }
 
-tbody td, thead th {
-    width: 15%;
+//tbody td, thead th {
+//     width: 15%;
+// }
+
+th, td {
+    min-width:100px;
 }
+
+
+td.bad {
+    background-color: #FFF8F3
+}
+
+td.badder {
+    background-color: #FCC89A
+}
+
+td.baddest {
+    background-color: #FF8119
+}
+
+td.good {
+    background-color: #F3F7FE
+}
+
+td.gooder {
+    background-color: #9FB9F6
+}
+
+td.goodest {
+    background-color: #2E6AF3
+}
+
