@@ -61,59 +61,62 @@ class DataManager < ActiveRecord::Base
   end
 
   def get_sorted_players_list(pos = nil)
-      player_values = { }
+      player_values = [ ]
 
       all_players.each do |player|
         unless is_drafted?(player)
           if pos.nil? || player.matches_position?(pos)
             deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player)
-            player_values[player.id] = { :value => deltas_obj[:deltas_magnitude].round(3), 
+            player_values.push({ :value => deltas_obj[:deltas_magnitude].round(3), :id => player.id,
                                          :categories => deltas_obj[:deltas][player.player_type.to_sym],
-                                         :name => player.name, :player_type => player.player_type, :position => player.position }
+                                         :means => self.means[player.id],
+                                         :name => player.name, :player_type => player.player_type, :position => player.position })
           end
         end
       end
 
-      return player_values.sort_by { |name, obj| (-1) * obj[:value] } 
+      return player_values.sort_by! { |obj| (-1) * obj[:value] } 
   end 
 
   def get_sorted_players_list_absolute_percentiles(pos = nil)
-    player_values = { } 
+    player_values = [ ]
 
     all_players.each do |player|
       unless is_drafted?(player)
         if pos.nil? || player.matches_position?(pos)
           percentiles_obj = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
-          player_values[player.id] = { :value => percentiles_obj[:sum].round(3),
+          player_values.push({ :value => percentiles_obj[:sum].round(3), :id => player.id,
                                        :categories => percentiles_obj[:percentiles][player.player_type],
-                                       :name => player.name, :player_type => player.player_type, :position => player.position }
+                                       :means => self.means[player.id],
+                                       :name => player.name, :player_type => player.player_type, :position => player.position })
         end
       end
     end
 
-    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+    return player_values.sort_by! { |obj| (-1) * obj[:value] }
   end
 
   def get_sorted_players_list_with_pos_adjustments(pos = nil)
-    player_values = { } 
+    player_values = [ ]
 
     all_players.each do |player|
       unless is_drafted?(player)
         if pos.nil? || player.matches_position?(pos)
           next if self.positional_adjustments[player.position].nil? 
           percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
-          player_values[player.id] = { :value => (percentile_sum[:sum] * self.positional_adjustments[player.position]).round(3), 
-                                       :categories => percentile_sum[:percentiles][player.player_type],
-                                       :name => player.name, :player_type => player.player_type, :position => player.position }
+          player_values.push({ :value => (percentile_sum[:sum] * self.positional_adjustments[player.position]).round(3), 
+                                       :categories => percentile_sum[:percentiles][player.player_type], :id => player.id,
+                                       :means => self.means[player.id],
+                                       :name => player.name, :player_type => player.player_type, :position => player.position })
         end
       end
     end
 
-    return player_values.sort_by { |name, obj|  (-1) * obj[:value] }
+    return player_values.sort_by! { |obj|  (-1) * obj[:value] }
   end
 
   def get_sorted_players_list_with_pos_adjustments_plus_slots(pos = nil, team = nil)
-    player_values = { }
+    player_values = [ ]
 
     all_players.each do |player|
       unless is_drafted?(player)
@@ -123,14 +126,15 @@ class DataManager < ActiveRecord::Base
           percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
           pos_adj = self.positional_adjustments[player.position]
 
-          player_values[player.name] = { :value => ((percentile_sum[:sum] * pos_adj) * (1.0 + self.league.my_team.remaining_positional_impact(player.position))).round(3), 
-                                         :categories => percentile_sum[:percentiles][player.player_type],
-                                         :name => player.name, :player_type => player.player_type, :position => player.position }
+          player_values.push({ :value => ((percentile_sum[:sum] * pos_adj) * (1.0 + self.league.my_team.remaining_positional_impact(player.position))).round(3), 
+                                       :categories => percentile_sum[:percentiles][player.player_type], :id => player.id,
+                                       :means => self.means[player.id],
+                                       :name => player.name, :player_type => player.player_type, :position => player.position })
         end
       end 
     end
 
-    return player_values.sort_by { |name, obj| (-1) * obj[:value] }
+    return player_values.sort_by { |obj| (-1) * obj[:value] }
   end
 
   def batter_slots
@@ -143,6 +147,29 @@ class DataManager < ActiveRecord::Base
 
   def target_stats
     self.league.setting_manager.get_stats
+  end
+
+  # http://stackoverflow.com/questions/31875909/z-score-to-probability-and-vice-verse-in-ruby
+  def get_percentile(z)
+    return 0 if z < -6.5
+    return 100 if z > 6.5
+
+    factk = 1
+    sum = 0
+    term = 1
+    k = 0
+
+    loopStop = Math.exp(-23)
+    while term.abs > loopStop do
+      term = 0.3989422804 * ((-1)**k) * (z**k) / (2*k+1) / (2**k) * (z**(k+1)) /factk
+      sum += term
+      k += 1
+      factk *= k
+    end
+
+    sum += 0.5
+    return (sum * 100).round(3)
+    # 1-sum
   end
 
   private
@@ -275,7 +302,6 @@ class DataManager < ActiveRecord::Base
   end
 
   def compute_percentile(player, zscores)
-    binding.pry if player.name == "Clayton Kershaw"
     percentiles = { }
 
     zscores.each do |category, value|
@@ -290,28 +316,6 @@ class DataManager < ActiveRecord::Base
     percentiles
   end
 
-  # http://stackoverflow.com/questions/31875909/z-score-to-probability-and-vice-verse-in-ruby
-  def get_percentile(z)
-    return 0 if z < -6.5
-    return 1 if z > 6.5
-
-    factk = 1
-    sum = 0
-    term = 1
-    k = 0
-
-    loopStop = Math.exp(-23)
-    while term.abs > loopStop do
-      term = 0.3989422804 * ((-1)**k) * (z**k) / (2*k+1) / (2**k) * (z**(k+1)) /factk
-      sum += term
-      k += 1
-      factk *= k
-    end
-
-    sum += 0.5
-    return (sum * 100).round(3)
-    # 1-sum
-  end
 
   def set_positional_adjustments()
     volatilities = { :bat => { }, :pit => { } }
@@ -342,20 +346,20 @@ class DataManager < ActiveRecord::Base
 
   def get_volatility_for_position(pos, n)
     sorted_players_subset = get_sorted_players_list_absolute_percentiles(pos).slice(0, n)
-    players = { }
+    players = [ ]
 
-    sorted_players_subset.each do |elem|
-      players[elem[0]] = elem[1][:player]
+    sorted_players_subset.each do |player|
+      players.push(Player.find(player[:id]))
     end
 
     if !players.empty?
-      type = players.values[0].player_type.to_sym
+      type = players[0].player_type.to_sym
     else
       # TODO: Do this better, get type in some other way.
       puts "Players list is empty when getting variance."
     end
 
-    get_volatility_for_players(players.values, target_stats[type])
+    get_volatility_for_players(players, target_stats[type])
   end
 
   def get_volatility_for_players(players, target_stats)
@@ -404,7 +408,7 @@ class DataManager < ActiveRecord::Base
   end
 
   def get_absolute_percentile_sum(player, current_percentiles)
-    vals = { :sum => 0.0, :percentiles => { 'bat' => { }, 'pit' => { } } }
+    vals = { :sum => 0.0, :percentiles => { 'bat' => { }, 'pit' => { } }, :means => { 'bat' => { }, 'pit' => { } } }
 
     target_stats[player.player_type.to_sym].each do |category|
       if current_percentiles[category].nil?

@@ -66,11 +66,18 @@ class Player < ActiveRecord::Base
 
   def assign_pitcher_pos()
     sp_inning_minimum = 80
+    save_minimum = 2
 
-    if ((self.static_stats[:steamer][:ip] && self.static_stats[:steamer][:ip] > sp_inning_minimum ) || 
+    meets_inning_minimum = ((self.static_stats[:steamer][:ip] && self.static_stats[:steamer][:ip] > sp_inning_minimum ) || 
        (self.static_stats[:depthcharts][:ip] && self.static_stats[:depthcharts][:ip] > sp_inning_minimum ) ||
        (self.static_stats[:zips][:ip] && self.static_stats[:zips][:ip] > sp_inning_minimum ) ||
        (self.static_stats[:pecota][:ip] && self.static_stats[:pecota][:ip] > sp_inning_minimum ))
+
+    above_save_minimum = ((self.static_stats[:steamer][:sv] && self.static_stats[:steamer][:sv] > save_minimum) ||
+       (self.static_stats[:depthcharts][:sv] && self.static_stats[:depthcharts][:sv] > save_minimum) ||
+       (self.static_stats[:pecota][:sv] && self.static_stats[:pecota][:sv] > save_minimum))
+
+    if (meets_inning_minimum && !above_save_minimum)
       self.position = "SP"
     else
       self.position = "RP"

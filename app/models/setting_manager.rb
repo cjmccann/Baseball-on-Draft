@@ -4,7 +4,6 @@ class SettingManager < ActiveRecord::Base
 
   belongs_to :league
   belongs_to :user
-  after_save :update_teams
 
   mattr_accessor :defaults
 

@@ -136,10 +136,10 @@ class ProjectionParser
         result = players.select do |k, v| 
           next if row[1].nil? || row[2].nil?
 
-          bool_a = k.include?(row[1]) && k.include?(row[2])
+          bool_a = k.downcase.include?(row[1].downcase) && k.downcase.include?(row[2].downcase)
 
           pecota_name = row[2] + ' ' + row[1]
-          bool_b = k.split(' ').reduce(true) { |prev, n| prev && pecota_name.include?(n) }
+          bool_b = k.split(' ').reduce(true) { |prev, n| prev && pecota_name.downcase.include?(n.downcase) }
           
           (bool_a || bool_b)
         end
