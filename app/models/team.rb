@@ -42,6 +42,52 @@ class Team < ActiveRecord::Base
     self.league.draft_helper
   end
 
+  def get_slots_with_players()
+    batter_positions_filled = { }
+    pitcher_positions_filled = { }
+
+    self.batters.each do |id, slot|
+      pos = slot.split('-')[0]
+
+      batter_positions_filled[pos] = [] if batter_positions_filled[pos].nil?
+      batter_positions_filled[pos].push(id)
+    end
+
+    self.pitchers.each do |id, slot|
+      pos = slot.split('-')[0]
+
+      pitcher_positions_filled[pos] = [] if pitcher_positions_filled[pos].nil?
+      pitcher_positions_filled[pos].push(id)
+    end
+
+    slots = { "bat" => [ ], "pit" => [ ] }
+    initial_batter_slots.each do |pos, n|
+      while (n > 0)
+        if (!batter_positions_filled[pos].nil? && !batter_positions_filled[pos].empty?)
+          slots["bat"].push( { position: pos, id: batter_positions_filled[pos].shift })
+        else
+          slots["bat"].push( { position: pos, id: nil } )
+        end
+
+        n -= 1
+      end
+    end
+
+    initial_pitcher_slots.each do |pos, n|
+      while (n > 0)
+        if (!pitcher_positions_filled[pos].nil? && !pitcher_positions_filled[pos].empty?)
+          slots["pit"].push( { position: pos, id: pitcher_positions_filled[pos].shift })
+        else
+          slots["pit"].push( { position: pos, id: nil } )
+        end
+
+        n -= 1
+      end
+    end
+
+    return slots
+  end
+
   def get_target_percentiles(team_percentiles)
     target_percentiles = { :bat => { }, :pit => { } }
 
@@ -68,9 +114,19 @@ class Team < ActiveRecord::Base
 
   def add_player(player)
     if player.player_type == "bat"
-      add_batter(player)
+      if (add_batter(player))
+        update_team_percentiles(player)
+        draft_helper.data_manager.update_cumulative_stats
+        draft_helper.data_manager.save
+        self.save
+      end
     elsif player.player_type == "pit"
-      add_pitcher(player)
+      if (add_pitcher(player))
+        update_team_percentiles(player)
+        draft_helper.data_manager.update_cumulative_stats
+        draft_helper.data_manager.save
+        self.save
+      end
     else
       puts "Player with unknown @type: #{player.player_type}"
     end
@@ -82,11 +138,10 @@ class Team < ActiveRecord::Base
     if !slot.nil?
       register_batter_slot(player, slot)
       draft_helper.set_drafted(self, player)
-      update_team_percentiles(player)
-      draft_helper.data_manager.update_cumulative_stats
-      draft_helper.data_manager.save
+      return true
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
+      return false
     end
   end
 
@@ -96,9 +151,6 @@ class Team < ActiveRecord::Base
     if !slot.nil?
       register_pitcher_slot(player, slot)
       draft_helper.set_drafted(self, player)
-      update_team_percentiles(player)
-      draft_helper.data_manager.update_cumulative_stats
-      draft_helper.data_manager.save
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
     end
@@ -166,7 +218,7 @@ class Team < ActiveRecord::Base
       index += 1
     end
 
-    self.batters[slot + "-" + index.to_s] = player.id
+    self.batters[player.id] = slot + "-" + index.to_s
     self.batter_slots[slot] -= 1
   end
 
@@ -177,7 +229,7 @@ class Team < ActiveRecord::Base
       index += 1
     end
 
-    self.pitchers[slot + "-" + index.to_s] = player.id
+    self.pitchers[player.id] = slot + "-" + index.to_s
     self.pitcher_slots[slot] -= 1
   end
 

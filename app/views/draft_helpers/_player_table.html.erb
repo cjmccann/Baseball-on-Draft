@@ -12,17 +12,16 @@
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= list_obj[:value_label] %></td>
             <% category_order = [ { }, { } ] %>
-            <% index = 2 %>
             <% stats_categories.each do |type, categories| %>
               <% categories.each do |category| %>
                 <% category_order.push({ :player_type => type.to_s, :category => category }) %>
                 <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= category %></td>
-                <% index += 1 %>
               <% end %>
             <% end %>
           </tr>
         </thead>
 
+        <tbody>
         <% list_obj[:list].each_with_index do |player, index| %>
           <% break if index > 400 %>
 
@@ -71,6 +70,7 @@
             <% end %>
           </tr>
         <% end %>
+        </tbody>
       </table>
     </div>
   <% end %>

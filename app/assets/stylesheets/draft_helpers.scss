@@ -27,7 +27,7 @@ tbody.team {
 
 th, td {
     min-width:85px;
-}
+}L[MaL[MaL[MaL[MaL[MaL[MaL
 **/
 
 
@@ -69,8 +69,9 @@ table.team {
 
     display: block;
     overflow: auto;
-    max-height: 400px;
-    width: 95%;
+    max-height: 250px;
+    min-height: 250px;
+    width: 98%;
     margin: 0 auto;
 }
 
@@ -80,10 +81,11 @@ table.team thead {
     position: fixed;
 
     /* make sure this header width is same as table */
-    max-width: 92%;
+    max-width: 42.5%;
     overflow-y: auto; /* use auto so scrollbars only appear if they need to*/
     overflow-x: hidden;
 }
+
 thead.team tr td {
     background: #eaebec;
     width: 90px;
@@ -91,7 +93,7 @@ thead.team tr td {
 }
 table.team tbody {
     display: block;
-    padding-top: 40px;
+    padding-top: 20px;
 }
 table.team th {
     padding:2px 2px 2px 2px;
@@ -106,7 +108,7 @@ table.team tr {
 /* only using !important to override your styles below */
 table.team td {
     margin-left: 0 !important;
-    width: 80px !important;
+    width: 70px !important;
     padding:2px 2px 2px 2px;
     border-top:0;
     border-bottom:1px solid #e0e0e0;
@@ -120,13 +122,13 @@ table.team tr, table td {
 
 div.teamTableContainer {
     float:left;
-    width:100%;
+    width:93%;
 }
 
 div.team {
     display:inline-block;
     padding: 25px; 
-    margin:30px auto; 
+    margin:10px auto; 
     overflow:auto; 
     padding:0 0; 
     width:49%;
@@ -135,12 +137,46 @@ div.team {
 
 
 
+table.teamTotals {
+    font-size:15px;
+    background:#eaebec;
+    border:#ccc 1px solid;
+    border-radius:3px;
+    border-collapse:collapse; border-spacing: 0; 
+    box-shadow: 0 1px 2px #d1d1d1;
 
+    display: block;
+    overflow: auto;
+    overflow-x: hidden;
+    max-height: 50px;
+    min-height: 50px;
+    width: 98%;
+    margin: 0 auto;
+}
 
+table.teamTotals tbody {
+    display: block;
+    // padding-top: 40px;
+}
 
+table.teamTotals tr {
+    text-align: center;
+}
 
+/* only using !important to override your styles below */
+table.teamTotals td {
+    margin-left: 0 !important;
+    width: 70px !important;
+    padding:2px 2px 2px 2px;
+    border-top:0;
+    border-bottom:1px solid #e0e0e0;
+    border-left: 1px solid #e0e0e0;
+}
 
-
+table.teamTotals tr, table td {
+    width: 90px;
+    min-width: 90px;
+}
 
 
 

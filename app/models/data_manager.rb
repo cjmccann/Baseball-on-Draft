@@ -261,7 +261,7 @@ class DataManager < ActiveRecord::Base
         if player.player_type == "pit"
           if player.position == "SP" && category == :sv
             next
-          elsif player.position == "RP" && category == :qs
+          elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
             next
           end
         end
@@ -289,6 +289,15 @@ class DataManager < ActiveRecord::Base
 
       ensure_dynamic_stats_for_player(:means, player)
       self.means[player.id].each do |category, value|
+        # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
+        if player.player_type == "pit"
+          if player.position == "SP" && category == :sv
+            next
+          elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
+            next
+          end
+        end
+
         square_dist = (value - averages[category]) ** 2
         square_dists[category].nil? ? square_dists[category] = [square_dist] : square_dists[category].push(square_dist)
       end
@@ -304,14 +313,23 @@ class DataManager < ActiveRecord::Base
       next if is_drafted?(player)
 
       ensure_dynamic_stats_for_player(:current_zscores, player)
-      self.current_zscores[player.id] = compute_zscores(self.averages[type], self.stddevs[type], self.means[player.id])
+      self.current_zscores[player.id] = compute_zscores(self.averages[type], self.stddevs[type], self.means[player.id], player)
     end
   end
 
-  def compute_zscores(averages, stddevs, means)
+  def compute_zscores(averages, stddevs, means, player)
     zscores = { }
 
     means.each do |category, value|
+      # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
+      if player.player_type == "pit"
+        if player.position == "SP" && category == :sv
+          next
+        elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
+          next
+        end
+      end
+
       zscores[category] = ((value - averages[category]) / stddevs[category]).round(3)
     end
 
@@ -331,6 +349,15 @@ class DataManager < ActiveRecord::Base
     percentiles = { }
 
     zscores.each do |category, value|
+      # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
+      if player.player_type == "pit"
+        if player.position == "SP" && category == :sv
+          next
+        elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
+          next
+        end
+      end
+
       if player.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
                            category == :fip || category == :dra || category == :hr || category == :h )
         percentiles[category] = 100 - get_percentile(value)
@@ -440,7 +467,7 @@ class DataManager < ActiveRecord::Base
     target_stats[player.player_type.to_sym].each do |category|
       if current_percentiles[category].nil?
         vals[:sum] += 0
-        vals[:percentiles][player.player_type][category] = 0
+        vals[:percentiles][player.player_type][category] = 0.0
       else 
         vals[:sum] += current_percentiles[category]
         vals[:percentiles][player.player_type][category] = current_percentiles[category].round(3)

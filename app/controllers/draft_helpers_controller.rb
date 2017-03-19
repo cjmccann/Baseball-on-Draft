@@ -4,8 +4,18 @@ class DraftHelpersController < ApplicationController
 
   def show
     @draft_helper = DraftHelper.find(params[:id])
+    @data_manager = @draft_helper.data_manager
+
     @my_team = @draft_helper.league.my_team
-    @teams = @draft_helper.league.teams
+    @my_team_players = @my_team.get_slots_with_players
+
+    @other_team_players = [ ]
+    @draft_helper.league.teams.each do |team|
+      if team.name != 'My Team'
+        @other_team_players.push(team.get_slots_with_players)
+      end
+    end
+
     @sorted_lists = [ ]
     @sorted_lists.push({ :div_id => 'availablePlayersCumulative',
                          :value_label => 'Cumulative % diff',

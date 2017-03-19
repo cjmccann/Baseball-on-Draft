@@ -21,6 +21,7 @@ function changeDisplayedPlayersTable(select) {
             },
             complete: function (xhr, status) {
                 setTableVisibility(options, select.value);
+                filterByPositionValue($('select#position').find(':selected').text());
                 toggleLoader();
                 enableTableDropdown();
             }
@@ -65,14 +66,18 @@ function setTableVisibility(options, newVal) {
 }
 
 function filterByPosition(select) {
-    if(select.value == "All") {
+    filterByPositionValue(select.value);
+}
+
+function filterByPositionValue(value) {
+    if(value == "All") {
         setAllPlayersVisible();
         return;
     } else {
         setAllPlayersHidden();
     }
 
-    matchingPositions = getMatchingPositions(select.value);
+    matchingPositions = getMatchingPositions(value);
 
     for(index in matchingPositions) {
         $('tr.' + matchingPositions[index] + getSelectedStatsType()).show();
@@ -158,16 +163,26 @@ function getSelectedPositionClasses() {
     return position_classes;
 }
 
-function scrollHeader(e){
-    var table = e.currentTarget,
+function scrollHeader(e) {
+    var table = e.currentTarget
     thead = table.getElementsByTagName('thead')[0];
         
     thead.scrollLeft = table.scrollLeft;
+}
+
+function scrollTeamHeader(e) {
+    var table = e.currentTarget
+    thead = table.getElementsByTagName('thead')[0];
+        
+    thead.scrollLeft = table.scrollLeft;
+    document.getElementById('myTeamTotals').scrollLeft = table.scrollLeft;
 }
 
 window.onload = function() {
     document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
     // document.getElementById('availablePlayersAbsolutePosTable').addEventListener('scroll', scrollHeader);
     // document.getElementById('availablePlayersAbsolutePosSlotTable').addEventListener('scroll', scrollHeader);
+    $('table#myTeam').on('scroll', scrollTeamHeader);
 }
+
 
