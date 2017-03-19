@@ -95,15 +95,27 @@ class Player < ActiveRecord::Base
   def is_valid?()
     min_pa = 400
     min_ip = 50
+    min_war = 1.0
 
-    has_min_pa = (self.static_stats[:steamer][:pa].to_f > min_pa || self.static_stats[:depthcharts][:pa].to_f > min_pa || 
-                  self.static_stats[:pecota][:pa].to_f > min_pa || self.static_stats[:zips][:pa].to_f > min_pa)
-    has_min_ip = (self.static_stats[:steamer][:ip].to_f > min_ip || self.static_stats[:depthcharts][:ip].to_f > min_ip || 
-                  self.static_stats[:pecota][:ip].to_f > min_ip || self.static_stats[:zips][:ip].to_f > min_ip)
+    has_min_war = has_min_for_category(:war, min_war)
 
-    return (has_min_pa || has_min_ip)
+    if (has_min_war)
+      if (self.player_type == "bat")
+        return has_min_for_category(:pa, min_pa)
+      elsif (self.player_type == "pit")
+        return has_min_for_category(:ip, min_ip)
+      else
+        binding.pry
+      end
+    end
+
+    return false
   end
 
+  def has_min_for_category(category, min)
+    return (self.static_stats[:steamer][category].to_f > min || self.static_stats[:depthcharts][category].to_f > min || 
+            self.static_stats[:pecota][category].to_f > min || self.static_stats[:zips][category].to_f > min)
+  end
 
   # TODO: refactor and combine with compute zscore
   def get_zscore_subset(averages, stddevs, dynamic_stats)

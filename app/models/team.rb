@@ -84,6 +84,7 @@ class Team < ActiveRecord::Base
       draft_helper.set_drafted(self, player)
       update_team_percentiles(player)
       draft_helper.data_manager.update_cumulative_stats
+      draft_helper.data_manager.save
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
     end
@@ -97,6 +98,7 @@ class Team < ActiveRecord::Base
       draft_helper.set_drafted(self, player)
       update_team_percentiles(player)
       draft_helper.data_manager.update_cumulative_stats
+      draft_helper.data_manager.save
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
     end

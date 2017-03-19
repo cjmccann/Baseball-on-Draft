@@ -5,7 +5,7 @@
   <% category_cell_width = "80px" %>
 
   <% @sorted_lists.each do |list_obj| %>
-    <div class="availablePlayers" id=<%= list_obj[:div_id] %> style="<%= "margin-top: 20px; " + (@is_first_table ? "" : "display:none;") %>">
+    <div class="availablePlayersContainer" id=<%= list_obj[:div_id] %> style="<%= "margin-top: 20px; " + (@is_first_table ? "" : "display:none;") %>">
       <table class="availablePlayers" id="<%= list_obj[:div_id] + "Table" %>">
         <thead class="availablePlayers">
           <tr>
@@ -24,7 +24,7 @@
         </thead>
 
         <% list_obj[:list].each_with_index do |player, index| %>
-          <% break if index > 300 %>
+          <% break if index > 400 %>
 
           <% player[:position].nil? ? position = '' : position = player[:position] %>
           <tr class="<%= "player percentile " + position %>">
@@ -42,7 +42,7 @@
                 <% td_class = "good" if player[:categories][data[:category]] > 0 %>
                 <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
                 <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
-                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].round(2).to_s + "%" %></td>
+                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].to_s + "%" %></td>
               <% else %>
                 <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
               <% end %>
@@ -63,7 +63,8 @@
                 <% td_class = "good" if player[:categories][data[:category]] > 0 %>
                 <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
                 <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
-                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]].round(2) %></td>
+                <% player[:means][data[:category]] = 0 if player[:means][data[:category]].nil? %>
+                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]].round(3) %></td>
               <% else %>
                 <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
               <% end %>

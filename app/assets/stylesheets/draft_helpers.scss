@@ -55,8 +55,83 @@ td.goodest {
     background-color: #2E6AF3
 }
 
+div.teams {
+    width:100%
+}
 
+table.team {
+    font-size:15px;
+    background:#eaebec;
+    border:#ccc 1px solid;
+    border-radius:3px;
+    border-collapse:collapse; border-spacing: 0; 
+    box-shadow: 0 1px 2px #d1d1d1;
 
+    display: block;
+    overflow: auto;
+    max-height: 400px;
+    width: 95%;
+    margin: 0 auto;
+}
+
+table.team thead {
+    z-index: 1; /* put on top of other rows */
+    display: block;
+    position: fixed;
+
+    /* make sure this header width is same as table */
+    max-width: 92%;
+    overflow-y: auto; /* use auto so scrollbars only appear if they need to*/
+    overflow-x: hidden;
+}
+thead.team tr td {
+    background: #eaebec;
+    width: 90px;
+    min-width: 90px;
+}
+table.team tbody {
+    display: block;
+    padding-top: 40px;
+}
+table.team th {
+    padding:2px 2px 2px 2px;
+    border-top:0;
+    border-bottom:1px solid #e0e0e0;
+    border-left: 1px solid #e0e0e0;
+    background: #ededed;
+}
+table.team tr {
+    text-align: center;
+}
+/* only using !important to override your styles below */
+table.team td {
+    margin-left: 0 !important;
+    width: 80px !important;
+    padding:2px 2px 2px 2px;
+    border-top:0;
+    border-bottom:1px solid #e0e0e0;
+    border-left: 1px solid #e0e0e0;
+}
+
+table.team tr, table td {
+    width: 90px;
+    min-width: 90px;
+}
+
+div.teamTableContainer {
+    float:left;
+    width:100%;
+}
+
+div.team {
+    display:inline-block;
+    padding: 25px; 
+    margin:30px auto; 
+    overflow:auto; 
+    padding:0 0; 
+    width:49%;
+    //width:auto; maybe should be auto
+}
 
 
 
@@ -131,7 +206,7 @@ table.availablePlayers tr, table td {
     min-width: 90px;
 }
 
-div.availablePlayers {
+div.availablePlayersContainer {
     float:left;
     width:100%;
 }
@@ -150,8 +225,8 @@ div#availablePlayers {
     border-top: 5px solid #3498db; /* Blue */
     border-bottom: 5px solid #3498db; /* Blue */
     border-radius: 50%;
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     animation: spin 2s linear infinite;
     display:inline-block; 
     margin-right:10px;

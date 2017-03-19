@@ -18,7 +18,7 @@ class DataManager < ActiveRecord::Base
 
   attr_accessor :dynamic_stats_init
 
-  def set_default_values
+  def set_initial_values
     @dynamic_stats_init = true
 
     self.means = { }
@@ -257,6 +257,15 @@ class DataManager < ActiveRecord::Base
       self.means[player.id].each do |category, value|
         values[category] = [ ] if values[category].nil?
 
+        # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
+        if player.player_type == "pit"
+          if player.position == "SP" && category == :sv
+            next
+          elsif player.position == "RP" && category == :qs
+            next
+          end
+        end
+
         values[category].push(value)
       end
     end
@@ -390,6 +399,7 @@ class DataManager < ActiveRecord::Base
     target_stddevs = { } 
 
     target_stats.each do |category|
+      next if averages[category].nil? || averages[category].nan?
       target_averages[category] = averages[category]
       target_stddevs[category] = stddevs[category]
     end

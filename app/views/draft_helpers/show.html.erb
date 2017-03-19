@@ -5,12 +5,60 @@
 <h1 style="text-align:center;">Draft Helper</h1>
 
 <div id="teams" data-params=id=<%= params[:id] if params.has_key?(:id) %>>
-  <div class="team" id="myTeam">
+  <% static_cell_width = "50px" %>
 
+  <div class="team" id="myTeam">
+    <div style="text-align:center;">
+      <h2 style="margin:10px;">My Team</h2>
+    </div>
+
+    <div class="teamTableContainer" style="<%= "margin-top: 20px;" %>">
+      <table class="team" >
+        <thead class="team">
+          <tr>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Label</td>
+          </tr>
+        </thead>
+
+        <tr class="<%= "player percentile " %>">
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">foo</td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">val</td>
+        </tr>
+
+        <tr style="display:none;" class="<%= "player raw " %>">
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">foo</td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">val</td>
+        </tr>
+      </table>
+    </div>
   </div>
 
   <div class="team" id="otherTeam">
+    <div style="text-align:center;">
+      <h2 style="margin:10px;">Other Team</h2>
+    </div>
 
+    <div class="teamTableContainer" style="<%= "margin-top: 20px;" %>">
+      <table class="team" >
+        <thead class="team">
+          <tr>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Label</td>
+          </tr>
+        </thead>
+
+        <tr class="<%= "player percentile " %>">
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">foo</td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">val</td>
+        </tr>
+
+        <tr style="display:none;" class="<%= "player raw " %>">
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">foo</td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">val</td>
+        </tr>
+      </table>
+    </div>
   </div>
 </div>
 
