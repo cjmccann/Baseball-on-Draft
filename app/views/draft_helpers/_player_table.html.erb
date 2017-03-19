@@ -1,0 +1,75 @@
+  <% stats_categories = @draft_helper.setting_manager.convert_stats_to_hash %>
+  <% num_categories = 2 + stats_categories[:bat].length + stats_categories[:pit].length %>
+  <% static_cell_width = "105px" %>
+  <% # category_cell_width = (((1200-210) * 0.94) / num_categories).round.to_s + "px" %>
+  <% category_cell_width = "80px" %>
+
+  <% @sorted_lists.each do |list_obj| %>
+    <div class="availablePlayers" id=<%= list_obj[:div_id] %> style="<%= "margin-top: 20px; " + (@is_first_table ? "" : "display:none;") %>">
+      <table class="availablePlayers" id="<%= list_obj[:div_id] + "Table" %>">
+        <thead class="availablePlayers">
+          <tr>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= list_obj[:value_label] %></td>
+            <% category_order = [ { }, { } ] %>
+            <% index = 2 %>
+            <% stats_categories.each do |type, categories| %>
+              <% categories.each do |category| %>
+                <% category_order.push({ :player_type => type.to_s, :category => category }) %>
+                <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= category %></td>
+                <% index += 1 %>
+              <% end %>
+            <% end %>
+          </tr>
+        </thead>
+
+        <% list_obj[:list].each_with_index do |player, index| %>
+          <% break if index > 300 %>
+
+          <% player[:position].nil? ? position = '' : position = player[:position] %>
+          <tr class="<%= "player percentile " + position %>">
+
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
+            <% category_order.each_with_index do |data, index_b| %>
+              <% next if index_b == 0 || index_b == 1 %>
+
+              <% if player[:player_type] == data[:player_type] %>
+                <% td_class = nil %>
+                <% td_class = "baddest" if player[:categories][data[:category]] > -100 %>
+                <% td_class = "badder" if player[:categories][data[:category]] > -50 %>
+                <% td_class = "bad" if player[:categories][data[:category]] > -25 %>
+                <% td_class = "good" if player[:categories][data[:category]] > 0 %>
+                <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
+                <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
+                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].round(2).to_s + "%" %></td>
+              <% else %>
+                <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+              <% end %>
+            <% end %>
+          </tr>
+
+          <tr style="display:none;" class="<%= "player raw " + position %>">
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
+            <% category_order.each_with_index do |data, index_c| %>
+              <% next if index_c == 0 || index_c == 1 %>
+
+              <% if player[:player_type] == data[:player_type] %>
+                <% td_class = nil %>
+                <% td_class = "baddest" if player[:categories][data[:category]] > -100 %>
+                <% td_class = "badder" if player[:categories][data[:category]] > -50 %>
+                <% td_class = "bad" if player[:categories][data[:category]] > -25 %>
+                <% td_class = "good" if player[:categories][data[:category]] > 0 %>
+                <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
+                <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
+                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]].round(2) %></td>
+              <% else %>
+                <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+              <% end %>
+            <% end %>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+  <% end %>

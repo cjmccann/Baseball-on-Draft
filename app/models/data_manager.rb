@@ -220,7 +220,8 @@ class DataManager < ActiveRecord::Base
               means[category] = 0.0
             end
 
-            means[category] += (stat_val.to_f * model_weights[model]).round(3)
+            model_weight_with_exceptions = get_model_weight_with_category_exceptions(category, model_weights, model)
+            means[category] += (stat_val.to_f * model_weight_with_exceptions).round(3)
           end
         end
       end
@@ -228,6 +229,22 @@ class DataManager < ActiveRecord::Base
       ensure_dynamic_stats_for_player(:means, player)
       self.means[player.id] = means
     end
+  end
+
+  def get_model_weight_with_category_exceptions(category, model_weights, model)
+    # to handle models that DON'T have a specific category
+    # e.g. zips does not include sv, so we re-distribute save-weight among other 3
+    
+    # zips does not have sv
+    if category == :sv && model != :zips
+
+      # sometimes, zips won't have included this player and weights have already been redistributed
+      if !(model_weights[:zips].nil?)
+        return model_weights[model] + (model_weights[:zips] / 3)
+       end
+    end
+
+    model_weights[model]
   end
   
   def compute_average_weighted_means(averages, players)

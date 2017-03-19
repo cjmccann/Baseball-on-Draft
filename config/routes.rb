@@ -18,6 +18,12 @@ Rails.application.routes.draw do
 
   resources :draft_helpers, shallow: true do
     resources :players
+
+    member do
+      get 'availablePlayersAbsolute'
+      get 'availablePlayersAbsolutePos'
+      get 'availablePlayersAbsolutePosSlot'
+    end
   end
 
   root 'home#index'

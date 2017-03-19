@@ -4,20 +4,37 @@ class DraftHelpersController < ApplicationController
 
   def show
     @draft_helper = DraftHelper.find(params[:id])
+    @my_team = @draft_helper.league.my_team
+    @teams = @draft_helper.league.teams
     @sorted_lists = [ ]
     @sorted_lists.push({ :div_id => 'availablePlayersCumulative',
                          :value_label => 'Cumulative % diff',
                          :list => @draft_helper.data_manager.get_sorted_players_list })
-    @sorted_lists.push({ :div_id => 'availablePlayersAbsolute',
-                         :value_label => 'Absolute % sum',
-                         :list => @draft_helper.data_manager.get_sorted_players_list_absolute_percentiles })
-    @sorted_lists.push({ :div_id => 'availablePlayersAbsolutePos',
-                         :value_label => 'Abs. % sum, pos adj',
-                         :list => @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments })
-    @sorted_lists.push({ :div_id => 'availablePlayersAbsolutePosSlot',
-                         :value_label => 'Abs. % sum, pos+slot adj',
-                         :list => @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots })
     authorize! :read, @draft_helper
+  end
+
+  def availablePlayersAbsolute
+    @draft_helper = DraftHelper.find(params[:id])
+    @sorted_lists = [{ :div_id => 'availablePlayersAbsolute',
+                         :value_label => 'Absolute % sum',
+                         :list => @draft_helper.data_manager.get_sorted_players_list_absolute_percentiles }]
+    render :partial => 'player_table'
+  end
+
+  def availablePlayersAbsolutePos
+    @draft_helper = DraftHelper.find(params[:id])
+    @sorted_lists = [{ :div_id => 'availablePlayersAbsolutePos',
+                         :value_label => 'Abs. % sum, pos adj',
+                         :list => @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments }]
+    render :partial => 'player_table'
+  end
+
+  def availablePlayersAbsolutePosSlot
+    @draft_helper = DraftHelper.find(params[:id])
+    @sorted_lists = [{ :div_id => 'availablePlayersAbsolutePosSlot',
+                         :value_label => 'Abs. % sum, pos+slot adj',
+                         :list => @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots }]
+    render :partial => 'player_table'
   end
 
   def new

@@ -1,16 +1,65 @@
 function changeDisplayedPlayersTable(select) {
     var options = {
-        'Cumulative percentile difference': '#availablePlayersCumulative',
-        'Absolute percentiles': '#availablePlayersAbsolute',
-        'Absolute percentiles with positional adjustment': '#availablePlayersAbsolutePos',
-        'Absolute percentiles, positional + remaining slot adjustment': '#availablePlayersAbsolutePosSlot'
+        'Cumulative percentile difference': 'availablePlayersCumulative',
+        'Absolute percentiles': 'availablePlayersAbsolute',
+        'Absolute percentiles with positional adjustment': 'availablePlayersAbsolutePos',
+        'Absolute percentiles, positional + remaining slot adjustment': 'availablePlayersAbsolutePosSlot'
     }
 
+    if ($('#' + options[select.value]).length == 0) {
+        toggleLoader();
+        disableTableDropdown();
+        $.ajax({
+            type: 'GET',
+            url: '/draft_helpers/' + getId() + '/' + options[select.value],
+            success: function(data) {
+                $('#availablePlayers').append(data);
+                $('#' + options[select.value] + 'Table').on('scroll', scrollHeader);
+            },
+            error: function(xhr, status) {
+
+            },
+            complete: function (xhr, status) {
+                setTableVisibility(options, select.value);
+                toggleLoader();
+                enableTableDropdown();
+            }
+        });
+    } else {
+        setTableVisibility(options, select.value);
+    }
+}
+
+function disableTableDropdown() {
+    $("select#playersTable").prop('disabled', true);
+}
+
+function enableTableDropdown() {
+    $("select#playersTable").prop('disabled', false);
+}
+
+function getId() {
+    return $('#availablePlayers').data('params-id');
+}
+
+function toggleLoader() {
+    elem = $('.loader')
+    if (elem.css("visibility") == "hidden") {
+        elem.css("visibility", "visible");
+    } else {
+        elem.css("visibility", "hidden");
+    }
+}
+
+function setTableVisibility(options, newVal) {
     for(key in options) {
-        if (key == select.value) {
-            $(options[key]).show();
+        if (key == newVal) {
+            // don't check for lenght, because we assume this is ALWAYS loaded
+            $('#' + options[key]).show();
         } else {
-            $(options[key]).hide();
+            if ($('#' + options[key]).length) {
+                $('#' + options[key]).hide();
+            }
         }
     }
 }
@@ -118,5 +167,7 @@ function scrollHeader(e){
 
 window.onload = function() {
     document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
+    // document.getElementById('availablePlayersAbsolutePosTable').addEventListener('scroll', scrollHeader);
+    // document.getElementById('availablePlayersAbsolutePosSlotTable').addEventListener('scroll', scrollHeader);
 }
 

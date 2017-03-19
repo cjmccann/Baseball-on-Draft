@@ -1,99 +1,52 @@
 <%= stylesheet_link_tag params[:controller] %>
 <%= javascript_include_tag params[:controller] %>
 
+
 <h1 style="text-align:center;">Draft Helper</h1>
 
-<div id="availablePlayers">
+<div id="teams" data-params=id=<%= params[:id] if params.has_key?(:id) %>>
+  <div class="team" id="myTeam">
+
+  </div>
+
+  <div class="team" id="otherTeam">
+
+  </div>
+</div>
+
+
+
+
+
+<div id="availablePlayers" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
+
   <div style="text-align:center;">
-    <h2 style="margin:30px;">Available Players</h2>
+    <h2 style="margin:10px;">Available Players</h2>
   </div>
 
-  <div id="availablePlayersControls" style="float:left; width:100%; text-align:center; margin-bottom: 20px;">
-    <label style="margin: 0, 20px;">Sort by: </label>
-    <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
-    <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin: 0 40px;' %>
+  <div id="availablePlayersControls" style="float:left; width:100%; text-align:center;">
 
-    <label style="margin: 0, 20px;">Show percentiles</label>
-    <%= radio_button_tag(:stats_type, 'percentile', true, { :onchange => 'changeStatsType(this)' }) %>
-    <label style="margin: 0, 20px;">Show raw stats</label>
-    <%= radio_button_tag(:stats_type, 'raw', false, { :onchange => 'changeStatsType(this)' }) %>
-
-    <label style="margin: 0 20px;">Position</label>
-    <% pos_options = ['All'] + @draft_helper.data_manager.batter_slots.keys + @draft_helper.data_manager.pitcher_slots.keys %>
-    <%= select_tag 'position', options_for_select(pos_options, 'All'), :onchange => 'filterByPosition(this)' %>
-  </div>
-
-  <% stats_categories = @draft_helper.setting_manager.convert_stats_to_hash %>
-  <% num_categories = 2 + stats_categories[:bat].length + stats_categories[:pit].length %>
-  <% cell_width = ((1500 * 0.94) / num_categories).round.to_s + "px" %>
-
-  <% @sorted_lists.each_with_index do |list_obj, index| %>
-    <div id=<%= list_obj[:div_id] %> style=<%= "display:none;" if index > 0 %>>
-      <table id="<%= list_obj[:div_id] + "Table" %>">
-        <thead>
-          <tr>
-            <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;">Name</td>
-            <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= list_obj[:value_label] %></td>
-            <% category_order = [ { }, { } ] %>
-            <% index = 2 %>
-            <% stats_categories.each do |type, categories| %>
-              <% categories.each do |category| %>
-                <% category_order.push({ :player_type => type.to_s, :category => category }) %>
-                <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= category %></td>
-                <% index += 1 %>
-              <% end %>
-            <% end %>
-          </tr>
-        </thead>
-
-        <% list_obj[:list].each_with_index do |player, index| %>
-          <% break if index > 300 %>
-
-          <% player[:position].nil? ? position = '' : position = player[:position] %>
-          <tr class="<%= "player percentile " + position %>">
-
-            <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= player[:name] %></td>
-            <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= player[:value] %></td>
-            <% category_order.each_with_index do |data, index| %>
-              <% next if index == 0 || index == 1 %>
-
-              <% if player[:player_type] == data[:player_type] %>
-                <% td_class = nil %>
-                <% td_class = "baddest" if player[:categories][data[:category]] > -100 %>
-                <% td_class = "badder" if player[:categories][data[:category]] > -50 %>
-                <% td_class = "bad" if player[:categories][data[:category]] > -25 %>
-                <% td_class = "good" if player[:categories][data[:category]] > 0 %>
-                <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
-                <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
-                <td class=<%= td_class %> style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= player[:categories][data[:category]].to_s + "%" %></td>
-              <% else %>
-                <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"></td>
-              <% end %>
-            <% end %>
-          </tr>
-
-          <tr style="display:none;" class="<%= "player raw " + position %>">
-            <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= player[:name] %></td>
-            <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= player[:value] %></td>
-            <% category_order.each_with_index do |data, index| %>
-              <% next if index == 0 || index == 1 %>
-
-              <% if player[:player_type] == data[:player_type] %>
-                <% td_class = nil %>
-                <% td_class = "baddest" if player[:categories][data[:category]] > -100 %>
-                <% td_class = "badder" if player[:categories][data[:category]] > -50 %>
-                <% td_class = "bad" if player[:categories][data[:category]] > -25 %>
-                <% td_class = "good" if player[:categories][data[:category]] > 0 %>
-                <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
-                <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
-                <td class=<%= td_class %> style="width: <%= cell_width %>; min-width: <%= cell_width %>;"><%= player[:means][data[:category]].round(3) %></td>
-              <% else %>
-                <td style="width: <%= cell_width %>; min-width: <%= cell_width %>;"></td>
-              <% end %>
-            <% end %>
-          </tr>
-        <% end %>
-      </table>
+    <div style="width:100%; margin-bottom:12px;">
+      <label style="margin: 0 10px;">Sort by: </label>
+      <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
+      <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin-right: 20px;' %>
+      <div class="loader" style="visibility: hidden;"></div>
     </div>
-  <% end %>
+
+
+    <div style="width:100%">
+      <label style="margin-right:5px;">Show percentiles</label>
+      <%= radio_button_tag(:stats_type, 'percentile', true, { :onchange => 'changeStatsType(this)' }) %>
+      <label style="margin-left:20px; margin-right:5px;">Show raw stats</label>
+      <%= radio_button_tag(:stats_type, 'raw', false, { :onchange => 'changeStatsType(this)' }) %>
+
+      <label style="margin-left: 40px;">Position</label>
+      <% pos_options = ['All'] + @draft_helper.data_manager.batter_slots.keys + @draft_helper.data_manager.pitcher_slots.keys %>
+      <%= select_tag 'position', options_for_select(pos_options, 'All'), :onchange => 'filterByPosition(this)' %>
+    </div>
+  </div>
+
+  <% @is_first_table = true %>
+  <%= render 'player_table' %>
+  <% @is_first_table = false %>
 </div>
