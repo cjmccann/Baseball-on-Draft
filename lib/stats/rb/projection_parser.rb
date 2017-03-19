@@ -76,7 +76,9 @@ class ProjectionParser
     hash = { }
 
     players.each do |name, value|
-      hash[name] = { "position" => value.position, "player_type" => value.player_type, "static_stats" => value.static_stats }
+      if value.is_valid?
+        hash[name] = { "position" => value.position, "player_type" => value.player_type, "static_stats" => value.static_stats }
+      end
     end
 
     begin
