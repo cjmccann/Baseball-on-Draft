@@ -13,18 +13,6 @@
  *= require_self
  *= require jquery.contextMenu
  */
-/*
-@font-face {
-    font-family: 'context-menu-icons';
-    src:url('<%= asset_path('context-menu-icons.eot') %>';
-    src:url('<%= asset_path('context-menu-icons.eot?#iefix') %>') format('embedded-opentype'),
-    url('<%= asset_path('context-menu-icons.woff2') %>') format('woff2'),
-    url('<%= asset_path('context-menu-icons.woff') %>') format('woff'),
-    url('<%= asset_path('context-menu-icons.ttf') %>') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-*/
 @font-face {
     font-family: 'context-menu-icons';
     src:url('context-menu-icons.eot');

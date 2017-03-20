@@ -48,14 +48,14 @@ class Team < ActiveRecord::Base
     batter_positions_filled = { }
     pitcher_positions_filled = { }
 
-    self.batters.each do |id, slot|
+    self.batters.each do |slot, id|
       pos = slot.split('-')[0]
 
       batter_positions_filled[pos] = [] if batter_positions_filled[pos].nil?
       batter_positions_filled[pos].push(id)
     end
 
-    self.pitchers.each do |id, slot|
+    self.pitchers.each do |slot, id|
       pos = slot.split('-')[0]
 
       pitcher_positions_filled[pos] = [] if pitcher_positions_filled[pos].nil?
@@ -115,27 +115,73 @@ class Team < ActiveRecord::Base
   end
 
   def add_player(player)
+    # TODO: combine/generalize these blocks... only dependent on differing implementations of get_available_bat/pit_slot
     if player.player_type == "bat"
       if (add_batter(player))
         update_team_percentiles(player)
         update_team_raw_stats(player)
         draft_helper.set_drafted(self, player)
         draft_helper.data_manager.update_cumulative_stats
+        draft_helper.data_manager.save
         draft_helper.save
         self.save
+        return true
+      else
+        return false
       end
-    elsif player.player_type == "pit"
+    else
       if (add_pitcher(player))
         update_team_percentiles(player)
         update_team_raw_stats(player)
         draft_helper.set_drafted(self, player)
         draft_helper.data_manager.update_cumulative_stats
+        draft_helper.data_manager.save
         draft_helper.save
         self.save
+        return true
+      else
+        return false
       end
-    else
-      puts "Player with unknown @type: #{player.player_type}"
     end
+  end
+
+  def remove_player(player)
+    update_slots_for_player_removal(player)
+    update_team_percentiles_for_player_removal(player)
+    update_team_raw_stats_for_player_removal(player)
+    draft_helper.set_undrafted(self, player)
+    draft_helper.data_manager.update_cumulative_stats
+
+    if (draft_helper.data_manager.save && draft_helper.save && self.save)
+      true
+    else
+      false
+    end
+  end
+
+  def update_slots_for_player_removal(player)
+    positions = nil
+    slots = nil
+
+    if player.player_type == 'bat'
+      positions = self.batters
+      slots = self.batter_slots
+    else
+      positions = self.pitchers
+      slots = self.pitcher_slots
+    end
+
+    key_to_remove = nil
+    positions.each do |position, player_id|
+      if player_id == player.id
+        key_to_remove = position
+      end
+    end
+
+    positions.delete(key_to_remove)
+
+    slot_to_increment = key_to_remove.split('-')[0]
+    slots[slot_to_increment] += 1
   end
 
   def add_batter(player)
@@ -155,8 +201,10 @@ class Team < ActiveRecord::Base
 
     if !slot.nil?
       register_pitcher_slot(player, slot)
+      return true
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
+      return false
     end
   end
 
@@ -172,6 +220,35 @@ class Team < ActiveRecord::Base
     data = team_percentiles[type][category]
     data[:values].push(value)
     data[:avg_percentile] = (data[:values].reduce(0, :+)) / data[:values].length
+  end
+
+  def update_team_percentiles_for_player_removal(player)
+    draft_helper.data_manager.initial_percentiles[player.id].each do |category, percentile|
+      update_percentile_for_player_removal(self.team_percentiles, player.player_type.to_sym, category, percentile)
+    end
+  end
+
+  def update_percentile_for_player_removal(team_percentiles, type, category, value)
+    data = team_percentiles[type][category]
+
+    # length of array is out of range, so will not delete.
+    # this ensures on the first instance of the value is deleted, in case there is more than 1
+    data[:values].delete_at(data[:values].index(value) || data[:values].length)
+    data[:avg_percentile] = (data[:values].reduce(0, :+)) / data[:values].length
+  end
+
+  def update_team_raw_stats_for_player_removal(player)
+    draft_helper.data_manager.means[player.id].each do |category, mean|
+      update_raw_stat_for_player_removal(self.team_raw_stats, player.player_type.to_sym, category, mean)
+    end
+  end
+
+  def update_raw_stat_for_player_removal(team_raw_stats, type, category, value) 
+    data = team_raw_stats[type][category]
+
+    # see notes in update_percentile_for_player_removal
+    data[:values].delete_at(data[:values].index(value) || data[:values].length)
+    data[:avg_raw_stat] = (data[:values].reduce(0, :+)) / data[:values].length
   end
 
   def init_percentile(team_percentiles, type, category)
@@ -247,7 +324,7 @@ class Team < ActiveRecord::Base
       index += 1
     end
 
-    self.batters[player.id] = slot + "-" + index.to_s
+    self.batters[slot + "-" + index.to_s] = player.id
     self.batter_slots[slot] -= 1
   end
 
@@ -258,7 +335,7 @@ class Team < ActiveRecord::Base
       index += 1
     end
 
-    self.pitchers[player.id] = slot + "-" + index.to_s
+    self.pitchers[slot + "-" + index.to_s] = player.id
     self.pitcher_slots[slot] -= 1
   end
 

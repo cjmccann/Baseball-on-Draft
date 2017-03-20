@@ -30,6 +30,14 @@ th, td {
 }L[MaL[MaL[MaL[MaL[MaL[MaL
 **/
 
+img {
+    cursor:pointer;
+}
+
+table {
+    font-size:12px;
+}
+
 
 td.bad {
     background-color: #FFC2C5
@@ -74,7 +82,6 @@ div.teams {
 }
 
 table.team {
-    font-size:15px;
     background:#eaebec;
     border:#ccc 1px solid;
     border-radius:3px;
@@ -83,8 +90,8 @@ table.team {
 
     display: block;
     overflow: auto;
-    max-height: 250px;
-    min-height: 250px;
+    max-height: 220px;
+    min-height: 220px;
     width: 96%;
     margin: 0 auto;
 }
@@ -107,7 +114,7 @@ thead.team tr td {
 }
 table.team tbody {
     display: block;
-    padding-top: 20px;
+    padding-top: 30px;
 }
 table.team th {
     padding:2px 2px 2px 2px;
@@ -122,7 +129,7 @@ table.team tr {
 /* only using !important to override your styles below */
 table.team td {
     margin-left: 0 !important;
-    width: 70px !important;
+    width: 20px !important;
     padding:2px 2px 2px 2px;
     border-top:0;
     border-bottom:1px solid #e0e0e0;
@@ -132,6 +139,7 @@ table.team td {
 table.team tr, table td {
     width: 90px;
     min-width: 90px;
+    height:30px;
 }
 
 div.teamTableContainer {
@@ -152,7 +160,6 @@ div.team {
 
 
 table.teamTotals {
-    font-size:15px;
     background:#eaebec;
     border:#ccc 1px solid;
     border-radius:3px;
@@ -162,8 +169,8 @@ table.teamTotals {
     display: block;
     overflow: auto;
     overflow-x: hidden;
-    max-height: 50px;
-    min-height: 50px;
+    max-height: 40px;
+    min-height: 40px;
     width: 96%;
     margin: 0 auto;
 }
@@ -180,22 +187,22 @@ table.teamTotals tr {
 /* only using !important to override your styles below */
 table.teamTotals td {
     margin-left: 0 !important;
-    width: 70px !important;
+    width: 20px !important;
     padding:2px 2px 2px 2px;
     border-top:0;
     border-bottom:1px solid #e0e0e0;
     border-left: 1px solid #e0e0e0;
 }
 
-table.teamTotals tr, table td {
+table.teamTotals tbody tr td {
     width: 90px;
     min-width: 90px;
+    height: 15px;
 }
 
 
 
 table.availablePlayers {
-    font-size:15px;
     background:#eaebec;
     border:#ccc 1px solid;
     border-radius:3px;
@@ -204,7 +211,7 @@ table.availablePlayers {
 
     display: block;
     overflow: auto;
-    max-height: 400px;
+    max-height: 350px;
     width: 95%;
     margin: 0 auto;
 }
@@ -218,6 +225,8 @@ table.availablePlayers thead {
     max-width: 92%;
     overflow-y: auto; /* use auto so scrollbars only appear if they need to*/
     overflow-x: hidden;
+    min-height: 40px;
+    max-height: 40px;
 }
 thead.availablePlayers tr td {
     background: #eaebec;
@@ -226,7 +235,7 @@ thead.availablePlayers tr td {
 }
 table.availablePlayers tbody {
     display: block;
-    padding-top: 40px;
+    padding-top: 30px;
 }
 table.availablePlayers th {
     padding:2px 2px 2px 2px;
@@ -241,7 +250,7 @@ table.availablePlayers tr {
 /* only using !important to override your styles below */
 table.availablePlayers td {
     margin-left: 0 !important;
-    width: 80px !important;
+    width: 20px !important;
     padding:2px 2px 2px 2px;
     border-top:0;
     border-bottom:1px solid #e0e0e0;
@@ -254,6 +263,7 @@ table tr:hover td {
 table.availablePlayers tr, table td {
     width: 90px;
     min-width: 90px;
+    height: 30px;
 }
 
 div.availablePlayersContainer {
@@ -263,7 +273,7 @@ div.availablePlayersContainer {
 
 div#availablePlayers {
     padding: 25px; 
-    margin:30px auto; 
+    margin:5px auto; 
     overflow:auto; 
     padding:0 0; 
     width:100%;
@@ -275,8 +285,8 @@ div#availablePlayers {
     border-top: 5px solid #3498db; /* Blue */
     border-bottom: 5px solid #3498db; /* Blue */
     border-radius: 50%;
-    width: 12px;
-    height: 12px;
+    width: 20px;
+    height: 20px;
     animation: spin 2s linear infinite;
     display:inline-block; 
     margin-right:10px;
@@ -285,4 +295,29 @@ div#availablePlayers {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* menu header via data attribute */
+.data-title:before {
+    content: attr(data-menutitle);
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    background: #DDD;
+    padding: 2px;
+
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.data-title :first-child {
+    margin-top: 20px;
+}
+
+.stop-scrolling {
+    height: 100%;
+    overflow: hidden;
 }

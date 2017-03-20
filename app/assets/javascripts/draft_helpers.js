@@ -179,66 +179,98 @@ function scrollTeamHeader(e) {
 }
 
 
-function addPlayerClicked(e) {
-    debugger;
-    selector = "img[data-player-id='" + $(e).data('player-id') + "']"
-    $(function() {
+function getTeamItemList() {
+    list = { }
 
-        $(selector).on('click', function(e){
-            console.log('clicked', this);
-        })   
+    $('div.teamName').each(function(index) {
+        elem = $(this);
+        list[elem.attr('id')] = { name: elem.data('team-name'), icon: 'add' };
+    });
+
+    list['sep1'] = '---------';
+    list['close'] = { name: 'Close', icon: 'quit' };
+
+    return list;
+}
+
+function handleTeamListAction(key, options) {
+    if (key != 'close') {
+        addPlayerToTeam(key, this.closest('tr').data('player-id'))
+    }
+}
+
+function addPlayerToTeam(teamId, playerId) {
+    toggleLoader();
+
+    $.ajax({
+        type: 'POST',
+        url: '/draft_helpers/' + getId() + '/addPlayerToTeam',
+        data: {
+            'teamId': teamId,
+            'playerId': playerId
+        },
+        error: function(xhr, status) {
+            console.log("ajax error in addPlayerToTeam");
+            toggleLoader();
+            debugger;
+        },
     });
 }
 
-function addPlayer(e) {
+function removePlayerFromTeam(elem) {
+    toggleLoader();
+    playerId = $(elem).closest('tr').data('player-id');
+    teamId = $(elem).closest('table').siblings('div.teamName').attr('id');
+
     $.ajax({
-        type: 'GET',
-        url: '/draft_helpers/' + getId() + '/' + options[select.value],
-        success: function(data) {
-            $('#availablePlayers').append(data);
-            $('#' + options[select.value] + 'Table').on('scroll', scrollHeader);
+        type: 'POST',
+        url: '/draft_helpers/' + getId() + '/removePlayerFromTeam',
+        data: {
+            'teamId': teamId,
+            'playerId': playerId
         },
         error: function(xhr, status) {
-
-        },
-        complete: function (xhr, status) {
-            setTableVisibility(options, select.value);
-            filterByPositionValue($('select#position').find(':selected').text());
             toggleLoader();
-            enableTableDropdown();
-        }
-});
-
+            console.log("ajax error in removePlayerFromTeam");
+            debugger;
+        },
+    });
 }
 
-function removePlayer(e) {
-
-    debugger;
+function showRemovePlayerButton() {
+    $(this).children('td').children('img').show();
 }
 
-window.onload = function() {
-    document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
-    // document.getElementById('availablePlayersAbsolutePosTable').addEventListener('scroll', scrollHeader);
-    // document.getElementById('availablePlayersAbsolutePosSlotTable').addEventListener('scroll', scrollHeader);
-    $('table#myTeam').on('scroll', scrollTeamHeader);
+function hideRemovePlayerButton() {
+    $(this).children('td').children('img').hide();
+}
+
+function initContextMenus() {
+    $.contextMenu('destroy', '.addPlayer');
 
     $.contextMenu({
         selector: '.addPlayer', 
+        className: 'data-title',
         trigger: 'left',
-        callback: function(key, options) {
-            var m = "clicked: " + key;
-            window.console && console.log(m) || alert(m); 
+        events: {
+            show: function(options) {
+                $('.data-title').attr('data-menutitle', 'Add ' + this.parent().siblings('.playerName').text() + ' to:');
+            }
         },
-        items: {
-            "edit": {name: "Edit", icon: "edit"},
-            "cut": {name: "Cut", icon: "cut"},
-            copy: {name: "Copy", icon: "copy"},
-            "paste": {name: "Paste", icon: "paste"},
-            "delete": {name: "Delete", icon: "delete"},
-            "sep1": "---------",
-            "quit": {name: "Quit", icon: function(){
-                return 'context-menu-icon context-menu-icon-quit';
-            }}
-        }
+        callback: handleTeamListAction,
+        items: getTeamItemList()
     });
 }
+
+ready = function() {
+    document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
+    $('table#myTeam').on('scroll', scrollTeamHeader);
+
+    initContextMenus();
+
+    $('body').addClass('stop-scrolling')
+
+    $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
+}
+
+document.addEventListener('turbolinks:load', ready);

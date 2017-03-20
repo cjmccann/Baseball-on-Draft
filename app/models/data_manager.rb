@@ -19,8 +19,6 @@ class DataManager < ActiveRecord::Base
   attr_accessor :dynamic_stats_init
 
   def set_initial_values
-    @dynamic_stats_init = true
-
     self.means = { }
     self.initial_zscores= { }
     self.initial_percentiles = { }
@@ -34,10 +32,6 @@ class DataManager < ActiveRecord::Base
 
     update_cumulative_stats
     set_initial_zscores_and_percentiles
-
-    @dynamic_stats_init = false
-
-    update_cumulative_stats
   end
 
   def update_cumulative_stats
@@ -125,7 +119,7 @@ class DataManager < ActiveRecord::Base
 
   def get_sorted_players_list_with_pos_adjustments_plus_slots(pos = nil, team = nil)
     player_values = [ ]
-    minxmax = { :min => 0, :max => 0 }
+    minmax = { :min => 0, :max => 0 }
 
     all_players.each do |player|
       unless is_drafted?(player)
@@ -368,8 +362,9 @@ class DataManager < ActiveRecord::Base
         end
       end
 
-      if player.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || category == :l ||
-                           category == :fip || category == :dra || category == :hr || category == :h )
+      if (player.player_type.to_sym == :pit && (category == :era || category == :whip || category == :bbper9 || 
+          category == :l || category == :fip || category == :dra || category == :hr || category == :h )) ||
+          (player.player_type.to_sym == :bat && category == :so)
         percentiles[category] = 100 - get_percentile(value)
       else
         percentiles[category] = get_percentile(value)
@@ -516,11 +511,7 @@ class DataManager < ActiveRecord::Base
   end
 
   def is_drafted?(player)
-    if @dynamic_stats_init
-      return false
-    else 
-      self.draft_helper.drafted_player_ids[player.id] ? true : false
-    end
+    self.draft_helper.drafted_player_ids[player.id] ? true : false
   end
 
 

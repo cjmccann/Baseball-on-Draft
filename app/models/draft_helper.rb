@@ -36,6 +36,11 @@ class DraftHelper < ActiveRecord::Base
     self.drafted_player_ids[player.id] = true
   end
 
+  def set_undrafted(team, player)
+    self.drafted_player_ids_by_team[team.id].delete(player.id)
+    self.drafted_player_ids[player.id] = false
+  end
+
   def get_color_class(value, minmax)
     td_class = nil
 

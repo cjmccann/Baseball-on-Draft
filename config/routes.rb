@@ -23,6 +23,8 @@ Rails.application.routes.draw do
       get 'availablePlayersAbsolute'
       get 'availablePlayersAbsolutePos'
       get 'availablePlayersAbsolutePosSlot'
+      post 'addPlayerToTeam'
+      post 'removePlayerFromTeam'
     end
   end
 

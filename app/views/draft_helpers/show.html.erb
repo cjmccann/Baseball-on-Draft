@@ -1,61 +1,62 @@
 <%= stylesheet_link_tag params[:controller] %>
 <%= javascript_include_tag params[:controller] %>
 
+<div id="draftHelperContainer" style="min-height:100%; max-height:100%">
+  <h1 style="font-size:30px; text-align:center; margin:5px 0; min-height:10%; max-height:10%">Draft Helper</h1>
 
-<h1 style="text-align:center; margin:5px 0;">Draft Helper</h1>
+  <div id="teams" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
 
-<div id="teams" data-params=id=<%= params[:id] if params.has_key?(:id) %>>
+    <div class="team" id="myTeam">
 
-  <div class="team" id="myTeam">
+      <div class="teamTableContainer">
+        <% @team = @my_team %>
+        <%= render 'team' %>
+      </div>
+    </div>
 
-    <div class="teamTableContainer" style="<%= "margin-top: 20px;" %>">
-      <% @team = @my_team %>
-      <%= render 'team' %>
+    <div class="team" id="otherTeam">
+      <div class="teamTableContainer">
+        <% @is_hidden = false %>
+        <% @other_teams.each do |team| %>
+            <% @team = team %>
+            <%= render 'team' %>
+          <% @is_hidden = true %>
+        <% end %>
+      </div>
     </div>
   </div>
 
-  <div class="team" id="otherTeam">
-    <div class="teamTableContainer" style="<%= "margin-top: 20px;" %>">
-      <% @is_hidden = false %>
-      <% @other_teams.each do |team| %>
-          <% @team = team %>
-          <%= render 'team' %>
-        <% @is_hidden = true %>
-      <% end %>
-    </div>
-  </div>
-</div>
 
+  <div id="availablePlayers" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
 
-<div id="availablePlayers" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
-
-  <div style="text-align:center;">
-    <h2 style="margin:10px;">Available Players</h2>
-  </div>
-
-  <div id="availablePlayersControls" style="float:left; width:100%; text-align:center;">
-
-    <div style="width:100%; margin-bottom:12px;">
-      <label style="margin: 0 10px;">Sort by: </label>
-      <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
-      <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin-right: 20px;' %>
-      <div class="loader" style="visibility: hidden;"></div>
+    <div style="text-align:center;">
+      <h2 style="margin:10px;">Available Players</h2>
     </div>
 
+    <div id="availablePlayersControls" style="float:left; width:100%; text-align:center;">
 
-    <div style="width:100%">
-      <label style="margin-right:5px;">Show percentiles</label>
-      <%= radio_button_tag(:stats_type, 'percentile', true, { :onchange => 'changeStatsType(this)' }) %>
-      <label style="margin-left:20px; margin-right:5px;">Show raw stats</label>
-      <%= radio_button_tag(:stats_type, 'raw', false, { :onchange => 'changeStatsType(this)' }) %>
+      <div style="width:100%; margin-bottom:12px;">
+        <label style="margin: 0 10px;">Sort by: </label>
+        <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
+        <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin-right: 20px;' %>
+        <div class="loader" style="visibility: hidden;"></div>
+      </div>
 
-      <label style="margin-left: 40px;">Position</label>
-      <% pos_options = ['All'] + @draft_helper.data_manager.batter_slots.keys + @draft_helper.data_manager.pitcher_slots.keys %>
-      <%= select_tag 'position', options_for_select(pos_options, 'All'), :onchange => 'filterByPosition(this)' %>
+
+      <div style="width:100%">
+        <label style="margin-right:5px;">Show percentiles</label>
+        <%= radio_button_tag(:stats_type, 'percentile', true, { :onchange => 'changeStatsType(this)' }) %>
+        <label style="margin-left:20px; margin-right:5px;">Show raw stats</label>
+        <%= radio_button_tag(:stats_type, 'raw', false, { :onchange => 'changeStatsType(this)' }) %>
+
+        <label style="margin-left: 40px;">Position</label>
+        <% pos_options = ['All'] + @draft_helper.data_manager.batter_slots.keys + @draft_helper.data_manager.pitcher_slots.keys %>
+        <%= select_tag 'position', options_for_select(pos_options, 'All'), :onchange => 'filterByPosition(this)' %>
+      </div>
     </div>
-  </div>
 
-  <% @is_first_table = true %>
-  <%= render 'player_table' %>
-  <% @is_first_table = false %>
+    <% @is_first_table = true %>
+    <%= render 'player_table' %>
+    <% @is_first_table = false %>
+  </div>
 </div>

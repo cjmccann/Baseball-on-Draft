@@ -3,6 +3,7 @@
   <% static_cell_width = "105px" %>
   <% # category_cell_width = (((1200-210) * 0.94) / num_categories).round.to_s + "px" %>
   <% category_cell_width = "80px" %>
+  <% position_cell_width = "30px" %>
   <% add_player_cell_width = "25px" %>
 
     <div class="availablePlayersContainer" id=<%= @sorted_list[:div_id] %> style="<%= "margin-top: 20px; " + (@is_first_table ? "" : "display:none;") %>">
@@ -11,6 +12,7 @@
           <tr>
             <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"></td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
+            <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;">Pos</td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= @sorted_list[:value_label] %></td>
             <% category_order = [ { }, { }, { } ] %>
             <% stats_categories.each do |type, categories| %>
@@ -32,7 +34,8 @@
               <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
               <%= image_tag("plus.png", add_player_image_attrs ) %>
             </td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+            <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+            <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
             <% category_order.each_with_index do |data, index_b| %>
               <% next if index_b == 0 || index_b == 1 || index_b == 2 %>
@@ -51,7 +54,8 @@
               <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
               <%= image_tag("plus.png", add_player_image_attrs ) %>
             </td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+            <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+            <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
             <% category_order.each_with_index do |data, index_c| %>
               <% next if index_c == 0 || index_c == 1 || index_c == 2 %>

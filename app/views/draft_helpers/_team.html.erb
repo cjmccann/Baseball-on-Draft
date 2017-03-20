@@ -1,21 +1,23 @@
-<div style="<%= "text-align:center; #{"display:none;" if @is_hidden}" %>">
+<div class="teamName" id="<%= @team.id %>" data-team-name="<%= @team.name %>" 
+  style="<%= "text-align:center; #{"display:none;" if @is_hidden}" %>">
   <h2 style="margin:10px;"><%= @team.name %></h2>
 </div>
 
 <% team_slots = @team.get_slots_with_players %>
 <% static_cell_width = "90px" %>
-<% category_cell_width = "70px" %>
+<% category_cell_width = "60px" %>
+<% slot_cell_width = "30px" %>
 <% minmax = { :min => 0, :max => 100 } %>
 <% first_table_for_team = true %>
 <% remove_player_cell_wid = "20px" %>
-<% remove_player_img_attrs = { alt: "remove player", style: "max-width:100%;", onclick: 'removePlayer(this)' } %>
+<% remove_player_img_attrs = { alt: "remove player", style: "max-width:100%; display:none;", onclick: 'removePlayerFromTeam(this)' } %>
 
 <% team_slots.each do |type, position_set| %>
   <table class="<%= "team " + type %>" id="<%= type + @team.id.to_s %>" style="<%= "display:none;" if (!first_table_for_team || @is_hidden) %>">
     <thead class="team">
       <tr>
         <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
-        <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;">Slot</td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;">Slot</td>
         <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
         <% category_order = [ nil, nil, nil ] %>
         <% stats_categories = @draft_helper.setting_manager.convert_stats_to_hash[type.to_sym] %>
@@ -43,7 +45,7 @@
         <% else %>
           <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
         <% end %>
-        <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= slot[:position] %></td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"><%= slot[:position] %></td>
         <% if !player.nil? %>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player.name %></td>
           <% category_order.each_with_index do |category, index| %>
@@ -70,7 +72,7 @@
         <% else %>
           <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
         <% end %>
-        <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= slot[:position] %></td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"><%= slot[:position] %></td>
         <% if !player.nil? %>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player.name %></td>
           <% category_order.each_with_index do |category, index| %>
@@ -98,7 +100,7 @@
       <% team_percentiles = @team.team_percentiles[type.to_sym] %>
       <tr>
         <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
-        <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"></td>
         <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Average:</td>
 
         <% category_order.each_with_index do |category, index| %>
@@ -113,7 +115,7 @@
       </tr>
       <tr>
         <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
-        <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"></td>
         <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Total:</td>
         <% category_order.each_with_index do |category, index| %>
           <% next if index == 0 || index == 1 || index == 2 %>
