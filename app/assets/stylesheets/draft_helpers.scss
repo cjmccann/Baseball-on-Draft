@@ -32,29 +32,43 @@ th, td {
 
 
 td.bad {
-    background-color: #FFF8F3
+    background-color: #FFC2C5
 }
 
 td.badder {
-    background-color: #FCC89A
+    background-color: #FF5C64;
 }
 
 td.baddest {
-    background-color: #FF8119
+    background-color: #FF1F2A;
 }
 
 td.good {
-    background-color: #F3F7FE
+    background-color: #AFC8FD
 }
 
 td.gooder {
-    background-color: #9FB9F6
+    background-color: #6091FB
 }
 
 td.goodest {
-    background-color: #2E6AF3
+    background-color: #2468F9
 }
 
+/*
+td.good {
+    background-color: #86C8FD
+}
+
+td.gooder {
+    background-color: #0E90FB
+}
+
+td.goodest {
+    background-color: #0365B5
+}
+
+*/
 div.teams {
     width:100%
 }
@@ -71,7 +85,7 @@ table.team {
     overflow: auto;
     max-height: 250px;
     min-height: 250px;
-    width: 98%;
+    width: 96%;
     margin: 0 auto;
 }
 
@@ -81,7 +95,7 @@ table.team thead {
     position: fixed;
 
     /* make sure this header width is same as table */
-    max-width: 42.5%;
+    max-width: 45%;
     overflow-y: auto; /* use auto so scrollbars only appear if they need to*/
     overflow-x: hidden;
 }
@@ -122,7 +136,7 @@ table.team tr, table td {
 
 div.teamTableContainer {
     float:left;
-    width:93%;
+    width:100%;
 }
 
 div.team {
@@ -150,7 +164,7 @@ table.teamTotals {
     overflow-x: hidden;
     max-height: 50px;
     min-height: 50px;
-    width: 98%;
+    width: 96%;
     margin: 0 auto;
 }
 
@@ -235,7 +249,7 @@ table.availablePlayers td {
 }
 
 table tr:hover td {
-    background: #F7FE2E;
+    background: #FCFEAE;
 }
 table.availablePlayers tr, table td {
     width: 90px;

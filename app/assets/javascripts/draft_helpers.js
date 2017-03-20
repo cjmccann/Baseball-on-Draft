@@ -178,11 +178,67 @@ function scrollTeamHeader(e) {
     document.getElementById('myTeamTotals').scrollLeft = table.scrollLeft;
 }
 
+
+function addPlayerClicked(e) {
+    debugger;
+    selector = "img[data-player-id='" + $(e).data('player-id') + "']"
+    $(function() {
+
+        $(selector).on('click', function(e){
+            console.log('clicked', this);
+        })   
+    });
+}
+
+function addPlayer(e) {
+    $.ajax({
+        type: 'GET',
+        url: '/draft_helpers/' + getId() + '/' + options[select.value],
+        success: function(data) {
+            $('#availablePlayers').append(data);
+            $('#' + options[select.value] + 'Table').on('scroll', scrollHeader);
+        },
+        error: function(xhr, status) {
+
+        },
+        complete: function (xhr, status) {
+            setTableVisibility(options, select.value);
+            filterByPositionValue($('select#position').find(':selected').text());
+            toggleLoader();
+            enableTableDropdown();
+        }
+});
+
+}
+
+function removePlayer(e) {
+
+    debugger;
+}
+
 window.onload = function() {
     document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
     // document.getElementById('availablePlayersAbsolutePosTable').addEventListener('scroll', scrollHeader);
     // document.getElementById('availablePlayersAbsolutePosSlotTable').addEventListener('scroll', scrollHeader);
     $('table#myTeam').on('scroll', scrollTeamHeader);
+
+    $.contextMenu({
+        selector: '.addPlayer', 
+        trigger: 'left',
+        callback: function(key, options) {
+            var m = "clicked: " + key;
+            window.console && console.log(m) || alert(m); 
+        },
+        items: {
+            "edit": {name: "Edit", icon: "edit"},
+            "cut": {name: "Cut", icon: "cut"},
+            copy: {name: "Copy", icon: "copy"},
+            "paste": {name: "Paste", icon: "paste"},
+            "delete": {name: "Delete", icon: "delete"},
+            "sep1": "---------",
+            "quit": {name: "Quit", icon: function(){
+                return 'context-menu-icon context-menu-icon-quit';
+            }}
+        }
+    });
 }
-
-

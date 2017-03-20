@@ -3,15 +3,16 @@
   <% static_cell_width = "105px" %>
   <% # category_cell_width = (((1200-210) * 0.94) / num_categories).round.to_s + "px" %>
   <% category_cell_width = "80px" %>
+  <% add_player_cell_width = "25px" %>
 
-  <% @sorted_lists.each do |list_obj| %>
-    <div class="availablePlayersContainer" id=<%= list_obj[:div_id] %> style="<%= "margin-top: 20px; " + (@is_first_table ? "" : "display:none;") %>">
-      <table class="availablePlayers" id="<%= list_obj[:div_id] + "Table" %>">
+    <div class="availablePlayersContainer" id=<%= @sorted_list[:div_id] %> style="<%= "margin-top: 20px; " + (@is_first_table ? "" : "display:none;") %>">
+      <table class="availablePlayers" id="<%= @sorted_list[:div_id] + "Table" %>">
         <thead class="availablePlayers">
           <tr>
+            <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"></td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= list_obj[:value_label] %></td>
-            <% category_order = [ { }, { } ] %>
+            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= @sorted_list[:value_label] %></td>
+            <% category_order = [ { }, { }, { } ] %>
             <% stats_categories.each do |type, categories| %>
               <% categories.each do |category| %>
                 <% category_order.push({ :player_type => type.to_s, :category => category }) %>
@@ -22,25 +23,22 @@
         </thead>
 
         <tbody>
-        <% list_obj[:list].each_with_index do |player, index| %>
-          <% break if index > 400 %>
+        <% @sorted_list[:list].each_with_index do |player, index| %>
+          <% break if index > 300 %>
 
           <% player[:position].nil? ? position = '' : position = player[:position] %>
-          <tr class="<%= "player percentile " + position %>">
-
+          <tr class="<%= "player percentile " + position %>" data-player-id="<%= player[:id] %>">
+            <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>">
+              <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
+              <%= image_tag("plus.png", add_player_image_attrs ) %>
+            </td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
             <% category_order.each_with_index do |data, index_b| %>
-              <% next if index_b == 0 || index_b == 1 %>
+              <% next if index_b == 0 || index_b == 1 || index_b == 2 %>
 
               <% if player[:player_type] == data[:player_type] %>
-                <% td_class = nil %>
-                <% td_class = "baddest" if player[:categories][data[:category]] > -100 %>
-                <% td_class = "badder" if player[:categories][data[:category]] > -50 %>
-                <% td_class = "bad" if player[:categories][data[:category]] > -25 %>
-                <% td_class = "good" if player[:categories][data[:category]] > 0 %>
-                <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
-                <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
+                <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
                 <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].to_s + "%" %></td>
               <% else %>
                 <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
@@ -48,20 +46,18 @@
             <% end %>
           </tr>
 
-          <tr style="display:none;" class="<%= "player raw " + position %>">
+          <tr style="display:none;" class="<%= "player raw " + position %>" data-player-id="<% player[:id] %>">
+            <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>">
+              <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
+              <%= image_tag("plus.png", add_player_image_attrs ) %>
+            </td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
             <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
             <% category_order.each_with_index do |data, index_c| %>
-              <% next if index_c == 0 || index_c == 1 %>
+              <% next if index_c == 0 || index_c == 1 || index_c == 2 %>
 
               <% if player[:player_type] == data[:player_type] %>
-                <% td_class = nil %>
-                <% td_class = "baddest" if player[:categories][data[:category]] > -100 %>
-                <% td_class = "badder" if player[:categories][data[:category]] > -50 %>
-                <% td_class = "bad" if player[:categories][data[:category]] > -25 %>
-                <% td_class = "good" if player[:categories][data[:category]] > 0 %>
-                <% td_class = "gooder" if player[:categories][data[:category]] > 50 %>
-                <% td_class = "goodest" if player[:categories][data[:category]] > 75 %>
+                <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
                 <% player[:means][data[:category]] = 0 if player[:means][data[:category]].nil? %>
                 <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]].round(3) %></td>
               <% else %>
@@ -73,4 +69,3 @@
         </tbody>
       </table>
     </div>
-  <% end %>

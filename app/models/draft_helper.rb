@@ -36,6 +36,29 @@ class DraftHelper < ActiveRecord::Base
     self.drafted_player_ids[player.id] = true
   end
 
+  def get_color_class(value, minmax)
+    td_class = nil
+
+    diff = minmax[:max] - minmax[:min]
+    interval = diff / 6
+
+    if value < (minmax[:min] + (interval * 1))
+      td_class = "baddest"
+    elsif value >= (minmax[:min] + (interval * 1)) && value < (minmax[:min] + (interval * 2))
+      td_class = "badder"
+    elsif value >= (minmax[:min] + (interval * 2)) && value < (minmax[:min] + (interval * 3))
+      td_class = "bad"
+    elsif value >= (minmax[:min] + (interval * 3)) && value < (minmax[:min] + (interval * 4))
+      td_class = "good"
+    elsif value >= (minmax[:min] + (interval * 4)) && value < (minmax[:min] + (interval * 5))
+      td_class = "gooder"
+    elsif value >= (minmax[:min] + (interval * 5))
+      td_class = "goodest"
+    end
+
+    td_class
+  end
+
   private
   def set_drafted_player_id_hashes
     self.drafted_player_ids = { }

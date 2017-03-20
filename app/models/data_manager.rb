@@ -62,11 +62,13 @@ class DataManager < ActiveRecord::Base
 
   def get_sorted_players_list(pos = nil)
       player_values = [ ]
+      minmax = { :min => 0, :max => 0 }
 
       all_players.each do |player|
         unless is_drafted?(player)
           if pos.nil? || player.matches_position?(pos)
-            deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player)
+            deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player, minmax)
+
             player_values.push({ :value => deltas_obj[:deltas_magnitude].round(3), :id => player.id,
                                          :categories => deltas_obj[:deltas][player.player_type.to_sym],
                                          :means => self.means[player.id],
@@ -75,66 +77,74 @@ class DataManager < ActiveRecord::Base
         end
       end
 
-      return player_values.sort_by! { |obj| (-1) * obj[:value] } 
+      return { :players => player_values.sort_by! { |obj| (-1) * obj[:value] }, :minmax => minmax }
   end 
 
   def get_sorted_players_list_absolute_percentiles(pos = nil)
     player_values = [ ]
+    minmax = { :min => 0, :max => 0 }
 
     all_players.each do |player|
       unless is_drafted?(player)
         if pos.nil? || player.matches_position?(pos)
-          percentiles_obj = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
-          player_values.push({ :value => percentiles_obj[:sum].round(3), :id => player.id,
-                                       :categories => percentiles_obj[:percentiles][player.player_type],
-                                       :means => self.means[player.id],
-                                       :name => player.name, :player_type => player.player_type, :position => player.position })
+          percentiles_obj = get_absolute_percentile_sum(player, self.current_percentiles[player.id], minmax)
+
+          value = percentiles_obj[:sum].round(3)
+
+          player_values.push({ :value => value, :id => player.id, :categories => percentiles_obj[:percentiles][player.player_type],
+                               :means => self.means[player.id], :name => player.name, :player_type => player.player_type, 
+                               :position => player.position })
         end
       end
     end
 
-    return player_values.sort_by! { |obj| (-1) * obj[:value] }
+    return { :players => player_values.sort_by! { |obj| (-1) * obj[:value] }, :minmax => minmax }
   end
 
   def get_sorted_players_list_with_pos_adjustments(pos = nil)
     player_values = [ ]
+    minmax = { :min => 0, :max => 0 }
 
     all_players.each do |player|
       unless is_drafted?(player)
         if pos.nil? || player.matches_position?(pos)
           next if self.positional_adjustments[player.position].nil? 
-          percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
-          player_values.push({ :value => (percentile_sum[:sum] * self.positional_adjustments[player.position]).round(3), 
-                                       :categories => percentile_sum[:percentiles][player.player_type], :id => player.id,
-                                       :means => self.means[player.id],
-                                       :name => player.name, :player_type => player.player_type, :position => player.position })
+          percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id], minmax)
+
+          value = (percentile_sum[:sum] * self.positional_adjustments[player.position]).round(3)
+
+          player_values.push({ :value => value, :categories => percentile_sum[:percentiles][player.player_type], :id => player.id,
+                               :means => self.means[player.id], :name => player.name, :player_type => player.player_type, 
+                               :position => player.position })
         end
       end
     end
 
-    return player_values.sort_by! { |obj|  (-1) * obj[:value] }
+    return  { :players => player_values.sort_by! { |obj|  (-1) * obj[:value] }, :minmax => minmax }
   end
 
   def get_sorted_players_list_with_pos_adjustments_plus_slots(pos = nil, team = nil)
     player_values = [ ]
+    minxmax = { :min => 0, :max => 0 }
 
     all_players.each do |player|
       unless is_drafted?(player)
         if pos.nil? || player.matches_position?(pos)
           next if self.positional_adjustments[player.position].nil?
 
-          percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id])
+          percentile_sum = get_absolute_percentile_sum(player, self.current_percentiles[player.id], minmax)
           pos_adj = self.positional_adjustments[player.position]
 
-          player_values.push({ :value => ((percentile_sum[:sum] * pos_adj) * (1.0 + self.league.my_team.remaining_positional_impact(player.position))).round(3), 
-                                       :categories => percentile_sum[:percentiles][player.player_type], :id => player.id,
-                                       :means => self.means[player.id],
-                                       :name => player.name, :player_type => player.player_type, :position => player.position })
+          value = ((percentile_sum[:sum] * pos_adj) * (1.0 + self.league.my_team.remaining_positional_impact(player.position))).round(3)
+
+          player_values.push({ :value => value, :categories => percentile_sum[:percentiles][player.player_type], :id => player.id, 
+                               :means => self.means[player.id], :name => player.name, :player_type => player.player_type, 
+                               :position => player.position })
         end
       end 
     end
 
-    return player_values.sort_by { |obj| (-1) * obj[:value] }
+    return { :players => player_values.sort_by { |obj| (-1) * obj[:value] }, :minmax => minmax }
   end
 
   def batter_slots
@@ -398,7 +408,7 @@ class DataManager < ActiveRecord::Base
   end
 
   def get_volatility_for_position(pos, n)
-    sorted_players_subset = get_sorted_players_list_absolute_percentiles(pos).slice(0, n)
+    sorted_players_subset = get_sorted_players_list_absolute_percentiles(pos)[:players].slice(0, n)
     players = [ ]
 
     sorted_players_subset.each do |player|
@@ -461,8 +471,8 @@ class DataManager < ActiveRecord::Base
     end
   end
 
-  def get_absolute_percentile_sum(player, current_percentiles)
-    vals = { :sum => 0.0, :percentiles => { 'bat' => { }, 'pit' => { } }, :means => { 'bat' => { }, 'pit' => { } } }
+  def get_absolute_percentile_sum(player, current_percentiles, minmax)
+    vals = { :sum => 0.0, :percentiles => { 'bat' => { }, 'pit' => { } } }
 
     target_stats[player.player_type.to_sym].each do |category|
       if current_percentiles[category].nil?
@@ -471,6 +481,12 @@ class DataManager < ActiveRecord::Base
       else 
         vals[:sum] += current_percentiles[category]
         vals[:percentiles][player.player_type][category] = current_percentiles[category].round(3)
+
+        if vals[:percentiles][player.player_type][category] < minmax[:min]
+          minmax[:min] = vals[:percentiles][player.player_type][category]
+        elsif vals[:percentiles][player.player_type][category] > minmax[:max]
+          minmax[:max] = vals[:percentiles][player.player_type][category]
+        end
       end
     end
 

@@ -9,6 +9,7 @@ class Team < ActiveRecord::Base
   serialize :batter_slots, Hash
   serialize :pitcher_slots, Hash
   serialize :team_percentiles, Hash
+  serialize :team_raw_stats, Hash
 
   has_many :players
 
@@ -21,6 +22,7 @@ class Team < ActiveRecord::Base
     self.batters = { }
     self.pitchers = { }
     self.team_percentiles = { :bat => { }, :pit => { } }
+    self.team_raw_stats = { :bat => { }, :pit => { } }
 
     self.batter_slots = initial_batter_slots.clone
     self.pitcher_slots = initial_pitcher_slots.clone
@@ -116,15 +118,19 @@ class Team < ActiveRecord::Base
     if player.player_type == "bat"
       if (add_batter(player))
         update_team_percentiles(player)
+        update_team_raw_stats(player)
+        draft_helper.set_drafted(self, player)
         draft_helper.data_manager.update_cumulative_stats
-        draft_helper.data_manager.save
+        draft_helper.save
         self.save
       end
     elsif player.player_type == "pit"
       if (add_pitcher(player))
         update_team_percentiles(player)
+        update_team_raw_stats(player)
+        draft_helper.set_drafted(self, player)
         draft_helper.data_manager.update_cumulative_stats
-        draft_helper.data_manager.save
+        draft_helper.save
         self.save
       end
     else
@@ -137,7 +143,6 @@ class Team < ActiveRecord::Base
 
     if !slot.nil?
       register_batter_slot(player, slot)
-      draft_helper.set_drafted(self, player)
       return true
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
@@ -150,7 +155,6 @@ class Team < ActiveRecord::Base
 
     if !slot.nil?
       register_pitcher_slot(player, slot)
-      draft_helper.set_drafted(self, player)
     else
       puts "No available team slot for: #{player.name} (#{player.position})."
     end
@@ -174,7 +178,26 @@ class Team < ActiveRecord::Base
     team_percentiles[type][category] = { :avg_percentile => 0.0, :values => [] }
   end
 
-  def get_target_percentile_deltas_with_new_player(player)
+  def update_team_raw_stats(player)
+    draft_helper.data_manager.means[player.id].each do |category, mean|
+      update_raw_stat(self.team_raw_stats, player.player_type.to_sym, category, mean)
+    end
+  end
+
+  def update_raw_stat(team_raw_stats, type, category, value) 
+    init_raw_stat(team_raw_stats, type, category) if team_raw_stats[type][category].nil?
+
+    data = team_raw_stats[type][category]
+    data[:values].push(value)
+    data[:avg_raw_stat] = (data[:values].reduce(0, :+)) / data[:values].length
+  end
+
+  def init_raw_stat(team_raw_stats, type, category)
+    team_raw_stats[type][category] = { :avg_raw_stat => 0.0, :values => [] }
+  end
+
+
+  def get_target_percentile_deltas_with_new_player(player, minmax)
     percentile_deltas = { :deltas_magnitude => 0.0, :deltas => { :bat => { }, :pit => { } } }
 
     sim_team_percentiles = get_simulated_team_percentiles(player)
@@ -188,6 +211,12 @@ class Team < ActiveRecord::Base
 
         percentile_deltas[:deltas_magnitude] += delta
         percentile_deltas[:deltas][type][category] = delta.round(3)
+        
+        if percentile_deltas[:deltas][type][category] < minmax[:min]
+          minmax[:min] = percentile_deltas[:deltas][type][category]
+        elsif percentile_deltas[:deltas][type][category] > minmax[:max]
+          minmax[:max] = percentile_deltas[:deltas][type][category]
+        end
       end
     end
 
