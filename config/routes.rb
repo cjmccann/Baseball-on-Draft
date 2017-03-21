@@ -20,9 +20,7 @@ Rails.application.routes.draw do
     resources :players
 
     member do
-      get 'availablePlayersAbsolute'
-      get 'availablePlayersAbsolutePos'
-      get 'availablePlayersAbsolutePosSlot'
+      get 'availablePlayersTable'
       post 'addPlayerToTeam'
       post 'removePlayerFromTeam'
     end

@@ -13,7 +13,7 @@
 //= require jquery
 //= require jquery.turbolinks
 //= require jquery_ujs
-//= require_tree .
+//= require jquery-ui/widgets/resizable
 //= require jquery.ui.position
 //= require jquery.contextMenu
 //= require turbolinks

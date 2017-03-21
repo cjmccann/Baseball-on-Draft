@@ -3,7 +3,8 @@ function changeDisplayedPlayersTable(select) {
         'Cumulative percentile difference': 'availablePlayersCumulative',
         'Absolute percentiles': 'availablePlayersAbsolute',
         'Absolute percentiles with positional adjustment': 'availablePlayersAbsolutePos',
-        'Absolute percentiles, positional + remaining slot adjustment': 'availablePlayersAbsolutePosSlot'
+        'Absolute percentiles, positional + remaining slot adjustment': 'availablePlayersAbsolutePosSlot',
+        '': 'availablePlayersDummy'
     }
 
     if ($('#' + options[select.value]).length == 0) {
@@ -11,7 +12,10 @@ function changeDisplayedPlayersTable(select) {
         disableTableDropdown();
         $.ajax({
             type: 'GET',
-            url: '/draft_helpers/' + getId() + '/' + options[select.value],
+            url: '/draft_helpers/' + getId() + '/availablePlayersTable',
+            data: {
+                tableId: options[select.value]
+            },
             success: function(data) {
                 $('#availablePlayers').append(data);
                 $('#' + options[select.value] + 'Table').on('scroll', scrollHeader);
@@ -263,14 +267,16 @@ function initContextMenus() {
 }
 
 ready = function() {
-    document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
+    $('body').addClass('stop-scrolling')
+
+    changeDisplayedPlayersTable($('select#playersTable').get(0))
+    // document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
+
     $('table#myTeam').on('scroll', scrollTeamHeader);
+    $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
 
     initContextMenus();
 
-    $('body').addClass('stop-scrolling')
-
-    $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
 }
 
 document.addEventListener('turbolinks:load', ready);

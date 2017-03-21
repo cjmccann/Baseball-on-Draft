@@ -50,12 +50,7 @@ class DraftHelpersController < ApplicationController
       end
     end
 
-    sorted_obj = @draft_helper.data_manager.get_sorted_players_list
-    list = sorted_obj[:players]
-    minmax = sorted_obj[:minmax]
-
-    @sorted_list = { :div_id => 'availablePlayersCumulative', :value_label => 'Cumulative % diff', 
-                     :list => list, :minmax => minmax  }
+    @sorted_list = { :div_id => 'availablePlayersDummy', :value_label => 'Value', :list => [], :minmax => { } }
     authorize! :read, @draft_helper
   end
 
@@ -83,39 +78,29 @@ class DraftHelpersController < ApplicationController
     end
   end
 
-  def availablePlayersAbsolute
+  def availablePlayersTable
     @draft_helper = DraftHelper.find(params[:id])
+    sorted_obj = nil
 
-    sorted_obj = @draft_helper.data_manager.get_sorted_players_list_absolute_percentiles
-    list = sorted_obj[:players]
-    minmax = sorted_obj[:minmax]
+    case params[:tableId]
+    when 'availablePlayersCumulative'
+      sorted_obj = @draft_helper.data_manager.get_sorted_players_list
+      value_label = 'Cumulative % diff'
+    when 'availablePlayersAbsolute'
+      sorted_obj = @draft_helper.data_manager.get_sorted_players_list_absolute_percentiles
+      value_label = 'Absolute % sum'
+    when 'availablePlayersAbsolutePos'
+      sorted_obj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments
+      value_label = 'Abs. % sum, pos adj'
+    when 'availablePlayersAbsolutePosSlot'
+      sorted_obj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots
+      value_label = 'Abs. % sum, pos+slot adj'
+    else
+      render :status => 400
+    end
 
-    @sorted_list = { :div_id => 'availablePlayersAbsolute', :value_label => 'Absolute % sum',
-                     :list => list, :minmax => minmax }
-    render :partial => 'player_table'
-  end
-
-  def availablePlayersAbsolutePos
-    @draft_helper = DraftHelper.find(params[:id])
-
-    sorted_obj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments
-    list = sorted_obj[:players]
-    minmax = sorted_obj[:minmax]
-
-    @sorted_list = { :div_id => 'availablePlayersAbsolutePos', :value_label => 'Abs. % sum, pos adj', 
-                     :list => list, :minmax => minmax }
-    render :partial => 'player_table'
-  end
-
-  def availablePlayersAbsolutePosSlot
-    @draft_helper = DraftHelper.find(params[:id])
-
-    sorted_obj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots
-    list = sorted_obj[:players]
-    minmax = sorted_obj[:minmax]
-
-    @sorted_list = { :div_id => 'availablePlayersAbsolutePosSlot', :value_label => 'Abs. % sum, pos+slot adj', 
-                     :list => list, :minmax => minmax }
+    @sorted_list = { :div_id => params[:tableId], :value_label => value_label,
+                     :list => sorted_obj[:players], :minmax => sorted_obj[:minmax] }
     render :partial => 'player_table'
   end
 

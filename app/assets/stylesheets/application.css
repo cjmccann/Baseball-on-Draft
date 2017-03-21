@@ -12,6 +12,7 @@
  *
  *= require_self
  *= require jquery.contextMenu
+ *= require jquery-ui/resizable
  */
 @font-face {
     font-family: 'context-menu-icons';
@@ -26,4 +27,8 @@
 
 html * {
     font-family: 'Montserrat', sans-serif !important;
+}
+
+#pageHeader {
+    height: 2vh;
 }
