@@ -46,3 +46,6 @@ bower.json
 .DS_Store
 *.swp
 *.log
+
+/lib/stats/projections/*-pecota.csv
+/lib/stats/data/*.json
