@@ -121,7 +121,7 @@ class Team < ActiveRecord::Base
         update_team_percentiles(player)
         update_team_raw_stats(player)
         draft_helper.set_drafted(self, player)
-        draft_helper.data_manager.update_cumulative_stats
+        draft_helper.data_manager.update_cumulative_stats_for_batters
         draft_helper.data_manager.save
         draft_helper.save
         self.save
@@ -134,7 +134,7 @@ class Team < ActiveRecord::Base
         update_team_percentiles(player)
         update_team_raw_stats(player)
         draft_helper.set_drafted(self, player)
-        draft_helper.data_manager.update_cumulative_stats
+        draft_helper.data_manager.update_cumulative_stats_for_pitchers
         draft_helper.data_manager.save
         draft_helper.save
         self.save
@@ -150,7 +150,12 @@ class Team < ActiveRecord::Base
     update_team_percentiles_for_player_removal(player)
     update_team_raw_stats_for_player_removal(player)
     draft_helper.set_undrafted(self, player)
-    draft_helper.data_manager.update_cumulative_stats
+
+    if player.player_type == 'bat'
+      draft_helper.data_manager.update_cumulative_stats_for_batters
+    else
+      draft_helper.data_manager.update_cumulative_stats_for_pitchers
+    end
 
     if (draft_helper.data_manager.save && draft_helper.save && self.save)
       true
@@ -234,7 +239,12 @@ class Team < ActiveRecord::Base
     # length of array is out of range, so will not delete.
     # this ensures on the first instance of the value is deleted, in case there is more than 1
     data[:values].delete_at(data[:values].index(value) || data[:values].length)
-    data[:avg_percentile] = (data[:values].reduce(0, :+)) / data[:values].length
+
+    if (data[:values].length == 0)
+      data[:avg_percentile] = 0
+    else
+      data[:avg_percentile] = (data[:values].reduce(0, :+)) / data[:values].length
+    end
   end
 
   def update_team_raw_stats_for_player_removal(player)
@@ -248,7 +258,12 @@ class Team < ActiveRecord::Base
 
     # see notes in update_percentile_for_player_removal
     data[:values].delete_at(data[:values].index(value) || data[:values].length)
-    data[:avg_raw_stat] = (data[:values].reduce(0, :+)) / data[:values].length
+
+    if (data[:values].length == 0)
+      data[:avg_raw_stat] = 0
+    else
+      data[:avg_raw_stat] = (data[:values].reduce(0, :+)) / data[:values].length
+    end
   end
 
   def init_percentile(team_percentiles, type, category)

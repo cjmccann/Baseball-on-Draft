@@ -1,6 +1,9 @@
 <%= stylesheet_link_tag params[:controller] %>
 <%= javascript_include_tag params[:controller] %>
 
+<% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
+<%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
+
 <div id="draftHelperContainer" style="height: 98vh; width: 100%;">
   <div style="height: 45vh;" id="teams" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
 
@@ -27,17 +30,17 @@
 
   <div style="height: 48vh;" id="availablePlayers" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
 
-    <div style="text-align:center;">
-      <h2 style="margin:3px; font-size:24px;">Available Players</h2>
+    <div style="text-align:center; align-items:center;">
+      <h2 style="margin-bottom:7px; margin-right:10px; margin-top:5px; font-size:26px; display:inline-block;">Available Players</h2>
+      <div class="loader" style="visibility: visible;"></div>
     </div>
 
-    <div id="availablePlayersControls" style="height: 15%; float:left; width:100%; text-align:center;">
+    <div id="availablePlayersControls" style="height: 10%; float:left; width:100%; text-align:center;">
 
       <div style="width:100%; margin-bottom:5px;">
         <label style="margin: 0 10px;">Sort by: </label>
         <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
         <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin-right: 20px;' %>
-        <div class="loader" style="visibility: hidden;"></div>
       </div>
 
 

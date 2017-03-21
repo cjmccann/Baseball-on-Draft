@@ -8,7 +8,7 @@ function changeDisplayedPlayersTable(select) {
     }
 
     if ($('#' + options[select.value]).length == 0) {
-        toggleLoader();
+        showLoader();
         disableTableDropdown();
         $.ajax({
             type: 'GET',
@@ -26,8 +26,8 @@ function changeDisplayedPlayersTable(select) {
             complete: function (xhr, status) {
                 setTableVisibility(options, select.value);
                 filterByPositionValue($('select#position').find(':selected').text());
-                toggleLoader();
                 enableTableDropdown();
+                hideLoader();
             }
         });
     } else {
@@ -54,6 +54,14 @@ function toggleLoader() {
     } else {
         elem.css("visibility", "hidden");
     }
+}
+
+function showLoader() {
+    $('.loader').css('visibility', 'visible');
+}
+
+function hideLoader() {
+    $('.loader').css('visibility', 'hidden');
 }
 
 function setTableVisibility(options, newVal) {
@@ -204,7 +212,7 @@ function handleTeamListAction(key, options) {
 }
 
 function addPlayerToTeam(teamId, playerId) {
-    toggleLoader();
+    showLoader();
 
     $.ajax({
         type: 'POST',
@@ -215,14 +223,14 @@ function addPlayerToTeam(teamId, playerId) {
         },
         error: function(xhr, status) {
             console.log("ajax error in addPlayerToTeam");
-            toggleLoader();
+            hideLoader();
             debugger;
         },
     });
 }
 
 function removePlayerFromTeam(elem) {
-    toggleLoader();
+    showLoader();
     playerId = $(elem).closest('tr').data('player-id');
     teamId = $(elem).closest('table').siblings('div.teamName').attr('id');
 
@@ -234,7 +242,7 @@ function removePlayerFromTeam(elem) {
             'playerId': playerId
         },
         error: function(xhr, status) {
-            toggleLoader();
+            hideLoader();
             console.log("ajax error in removePlayerFromTeam");
             debugger;
         },
@@ -266,6 +274,55 @@ function initContextMenus() {
     });
 }
 
+function changePlayerType(select) {
+    teamId = select.id.split('playerType')[1];
+
+    if (select.value == 'Pitchers') {
+        showType = 'pit';
+        hideType = 'bat';
+    } else {
+        showType = 'bat';
+        hideType = 'pit';
+    }
+
+    showTableId = 'table#' + showType + teamId;
+    showTableTotalsId = showTableId + '-totals';
+    hideTableId = 'table#' + hideType + teamId;
+    hideTableTotalsId = hideTableId + '-totals';
+
+    $(hideTableId).hide();
+    $(hideTableTotalsId).hide();
+    $(showTableId).show();
+    $(showTableTotalsId).show();
+}
+
+function changeStatType(select) {
+    teamId = select.id.split('statType')[1];
+
+    if (select.value == 'Percentiles') {
+        $('table#bat' + teamId).find('tr.team_raw').hide();
+        $('table#pit' + teamId).find('tr.team_raw').hide();
+        $('table#bat' + teamId + '-totals').find('tr.team_raw').hide();
+        $('table#pit' + teamId + '-totals').find('tr.team_raw').hide();
+
+
+        $('table#bat' + teamId).find('tr.team_percentile').show();
+        $('table#pit' + teamId).find('tr.team_percentile').show();
+        $('table#bat' + teamId + '-totals').find('tr.team_percentile').show();
+        $('table#pit' + teamId + '-totals').find('tr.team_percentile').show();
+    } else {
+        $('table#bat' + teamId).find('tr.team_percentile').hide();
+        $('table#pit' + teamId).find('tr.team_percentile').hide();
+        $('table#bat' + teamId + '-totals').find('tr.team_percentile').hide();
+        $('table#pit' + teamId + '-totals').find('tr.team_percentile').hide();
+
+        $('table#bat' + teamId).find('tr.team_raw').show();
+        $('table#pit' + teamId).find('tr.team_raw').show();
+        $('table#bat' + teamId + '-totals').find('tr.team_raw').show();
+        $('table#pit' + teamId + '-totals').find('tr.team_raw').show();
+    }
+}
+
 ready = function() {
     $('body').addClass('stop-scrolling')
 
@@ -276,7 +333,6 @@ ready = function() {
     $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
 
     initContextMenus();
-
 }
 
 document.addEventListener('turbolinks:load', ready);

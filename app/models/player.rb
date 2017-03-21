@@ -89,7 +89,7 @@ class Player < ActiveRecord::Base
     # compute this current player's QS rate based on this assumption
     
     qs_rate = (1 - ((0.5 * means[:era]) / 4.5))
-    means[:qs] = means[:gs] * qs_rate
+    means[:qs] = (means[:gs] * qs_rate).round(3)
   end
 
   def is_valid?()

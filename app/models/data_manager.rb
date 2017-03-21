@@ -8,9 +8,7 @@ class DataManager < ActiveRecord::Base
   serialize :positional_adjustments, Hash
 
   serialize :means, Hash
-  serialize :current_zscores, Hash
   serialize :current_percentiles, Hash
-  serialize :initial_zscores, Hash
   serialize :initial_percentiles, Hash
 
   # after_create :init_dynamic_stats
@@ -20,23 +18,24 @@ class DataManager < ActiveRecord::Base
 
   def set_initial_values
     self.means = { }
-    self.initial_zscores= { }
     self.initial_percentiles = { }
-    self.current_zscores = { }
     self.current_percentiles = { }
 
+    @on_init = true
     compute_weighted_means(batters)
     compute_weighted_means(pitchers)
 
     compute_quality_starts(pitchers)
 
     update_cumulative_stats
-    set_initial_zscores_and_percentiles
+    set_initial_percentiles
+    @on_init = false
   end
 
   def update_cumulative_stats
     self.averages = { :bat => { }, :pit => { } }
     self.stddevs = { :bat => { }, :pit => { } }
+    zscores = { }  # variable always computed transiently
     self.positional_adjustments = { }
 
     compute_average_weighted_means(self.averages[:bat], batters)
@@ -45,11 +44,45 @@ class DataManager < ActiveRecord::Base
     compute_all_stddevs(self.stddevs[:bat], self.averages[:bat], batters)
     compute_all_stddevs(self.stddevs[:pit], self.averages[:pit], pitchers)
 
-    compute_all_zscores(:bat, batters)
-    compute_all_zscores(:pit, pitchers)
+    compute_all_zscores(:bat, batters, zscores)
+    compute_all_zscores(:pit, pitchers, zscores)
 
-    compute_all_percentiles(batters)
-    compute_all_percentiles(pitchers)
+    compute_all_percentiles(batters, zscores)
+    compute_all_percentiles(pitchers, zscores)
+     
+    set_positional_adjustments()
+  end
+
+  def update_cumulative_stats_for_pitchers
+    self.averages[:pit] = { }
+    self.stddevs[:pit] = { }
+    zscores = { }  # variable always computed transiently
+    self.positional_adjustments = { }
+
+    compute_average_weighted_means(self.averages[:pit], pitchers)
+
+    compute_all_stddevs(self.stddevs[:pit], self.averages[:pit], pitchers)
+
+    compute_all_zscores(:pit, pitchers, zscores)
+
+    compute_all_percentiles(pitchers, zscores)
+     
+    set_positional_adjustments()
+  end
+
+  def update_cumulative_stats_for_batters
+    self.averages[:bat] = { }
+    self.stddevs[:bat] = { }
+    zscores = { }  # variable always computed transiently
+    self.positional_adjustments = { }
+
+    compute_average_weighted_means(self.averages[:bat], batters)
+
+    compute_all_stddevs(self.stddevs[:bat], self.averages[:bat], batters)
+
+    compute_all_zscores(:bat, batters, zscores)
+
+    compute_all_percentiles(batters, zscores)
      
     set_positional_adjustments()
   end
@@ -225,9 +258,15 @@ class DataManager < ActiveRecord::Base
             end
 
             model_weight_with_exceptions = get_model_weight_with_category_exceptions(category, model_weights, model)
-            means[category] += (stat_val.to_f * model_weight_with_exceptions).round(3)
+            means[category] += (stat_val.to_f * model_weight_with_exceptions)
           end
         end
+      end
+
+      # ensuring all stats are rounded to 3 decimals. 
+      # when using += two 3-decimal numbers can make bigger numbers :)
+      means.each do |category, value|
+        means[category] = value.round(3)
       end
 
       ensure_dynamic_stats_for_player(:means, player)
@@ -312,12 +351,14 @@ class DataManager < ActiveRecord::Base
     end
   end
 
-  def compute_all_zscores(type, players)
+  def compute_all_zscores(type, players, zscores)
     players.each do |player|
       next if is_drafted?(player)
 
-      ensure_dynamic_stats_for_player(:current_zscores, player)
-      self.current_zscores[player.id] = compute_zscores(self.averages[type], self.stddevs[type], self.means[player.id], player)
+      zscores = { } if zscores.nil?
+      zscores[player.id] = { } if zscores[player.id].nil?
+
+      zscores[player.id] = compute_zscores(self.averages[type], self.stddevs[type], self.means[player.id], player)
     end
   end
 
@@ -340,12 +381,12 @@ class DataManager < ActiveRecord::Base
     zscores
   end
 
-  def compute_all_percentiles(players)
+  def compute_all_percentiles(players, zscores)
     players.each do |player|
       next if is_drafted?(player)
 
       ensure_dynamic_stats_for_player(:current_percentiles, player)
-      self.current_percentiles[player.id] = compute_percentile(player, self.current_zscores[player.id])
+      self.current_percentiles[player.id] = compute_percentile(player, zscores[player.id])
     end
   end
 
@@ -488,30 +529,28 @@ class DataManager < ActiveRecord::Base
     return vals
   end
 
-  def set_initial_zscores_and_percentiles()
+  def set_initial_percentiles()
     batters.each do |player|
-      ensure_dynamic_stats_for_player(:initial_zscores, player)
-      ensure_dynamic_stats_for_player(:current_zscores, player)
       ensure_dynamic_stats_for_player(:initial_percentiles, player)
       ensure_dynamic_stats_for_player(:current_percentiles, player)
 
-      self.initial_zscores[player.id] = self.current_zscores[player.id]
       self.initial_percentiles[player.id] = self.current_percentiles[player.id]
     end
 
     pitchers.each do |player|
-      ensure_dynamic_stats_for_player(:initial_zscores, player)
-      ensure_dynamic_stats_for_player(:current_zscores, player)
       ensure_dynamic_stats_for_player(:initial_percentiles, player)
       ensure_dynamic_stats_for_player(:current_percentiles, player)
 
-      self.initial_zscores[player.id] = self.current_zscores[player.id]
       self.initial_percentiles[player.id] = self.current_percentiles[player.id]
     end
   end
 
   def is_drafted?(player)
-    self.draft_helper.drafted_player_ids[player.id] ? true : false
+    if @on_init
+      false
+    else
+      self.draft_helper.drafted_player_ids[player.id] ? true : false
+    end
   end
 
 

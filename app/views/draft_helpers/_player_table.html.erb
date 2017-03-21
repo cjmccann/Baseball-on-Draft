@@ -63,7 +63,7 @@
               <% if player[:player_type] == data[:player_type] %>
                 <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
                 <% player[:means][data[:category]] = 0 if player[:means][data[:category]].nil? %>
-                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]].round(3) %></td>
+                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]] %></td>
               <% else %>
                 <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
               <% end %>

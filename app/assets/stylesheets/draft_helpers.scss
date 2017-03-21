@@ -30,9 +30,11 @@ th, td {
 }L[MaL[MaL[MaL[MaL[MaL[MaL
 **/
 
-img {
+img, .otherTeamHeader {
     cursor:pointer;
 }
+
+
 
 table {
     font-size:12px;
@@ -94,7 +96,7 @@ table.team {
     // min-height: 220px;
     width: 96%;
     margin: 0 auto;
-    height: 73%;
+    height: 71%;
 }
 
 table.team thead {
@@ -106,6 +108,13 @@ table.team thead {
     max-width: 45%;
     overflow-y: auto; /* use auto so scrollbars only appear if they need to*/
     overflow-x: hidden;
+    min-height: 25px;
+    max-height: 25px;
+}
+
+table.team thead tr td {
+    min-height: 25px;
+    max-height: 25px;
 }
 
 thead.team tr td {
@@ -115,7 +124,7 @@ thead.team tr td {
 }
 table.team tbody {
     display: block;
-    padding-top: 30px;
+    padding-top: 25px;
 }
 table.team th {
     padding:2px 2px 2px 2px;
@@ -124,6 +133,7 @@ table.team th {
     border-left: 1px solid #e0e0e0;
     background: #ededed;
 }
+
 table.team tr {
     text-align: center;
 }
@@ -137,10 +147,10 @@ table.team td {
     border-left: 1px solid #e0e0e0;
 }
 
-table.team tr, table td {
+table.team tr.team  {
     width: 90px;
     min-width: 90px;
-    // height:30px;
+    height:30px;
 }
 
 div.teamTableContainer {
@@ -264,7 +274,7 @@ table.availablePlayers td {
 table tr:hover td {
     background: #FCFEAE;
 }
-table.availablePlayers tr, table td {
+table.availablePlayers tr, table.availablePlayers td {
     width: 90px;
     min-width: 90px;
     height: 30px;
@@ -287,15 +297,14 @@ div#availablePlayers {
 }
 
 .loader {
-    border: 5px solid #f3f3f3; /* Light grey */
-    border-top: 5px solid #3498db; /* Blue */
-    border-bottom: 5px solid #3498db; /* Blue */
+    border: 5px solid #dadada; /* Light grey */
+    border-top: 5px solid #2468F9; /* Blue */
+    border-bottom: 5px solid #2468F9; /* Blue */
     border-radius: 50%;
     width: 12px;
     height: 12px;
     animation: spin 2s linear infinite;
     display:inline-block; 
-    margin-right:10px;
 }
 
 @keyframes spin {

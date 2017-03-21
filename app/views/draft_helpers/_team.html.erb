@@ -1,6 +1,25 @@
 <div class="teamName" id="<%= @team.id %>" data-team-name="<%= @team.name %>" 
-  style="<%= "text-align:center; #{"display:none;" if @is_hidden}" %>">
-  <h2 style="margin:10px;"><%= @team.name %></h2>
+  style="<%= "position:relative; margin:10px 0; width: 100%; text-align:center; #{"display:none;" if @is_hidden}" %>">
+
+  <div style="width: 33%; display:inline; position:absolute; left: 0; bottom:0px;">
+    <% options = ['Batters', 'Pitchers' ] %>
+    <%= select_tag "playerType#{@team.id}", options_for_select(options, 'Batters'), :onchange => 'changePlayerType(this);', 
+      :style => 'margin-right: 20px; display:;' %>
+  </div>
+
+  <div style="width: 33%; display:inline; margin-bottom:10px; overflow:auto;">
+    <h2 style="display:inline; position:relative;" class='<%= "otherTeamHeader" if @team.name != 'My Team' %>'><%= @team.name %></h2>
+    <% if @team.name != 'My Team' %>
+      <% change_team_img_attrs = { :'data-team-name' => @team.name, alt: "change team shown", style: "float:right; max-width:100%; height:30px; position:absolute;", class:"changeTeam" } %>
+      <%= image_tag("downarrow.png", change_team_img_attrs ) %>
+    <% end %>
+  </div>
+
+  <div style="width: 33%; display:inline; position:absolute; right: 0; bottom:0px;">
+    <% options = ['Raw Stats', 'Percentiles' ] %>
+    <%= select_tag "statType#{@team.id}", options_for_select(options, 'Percentiles'), :onchange => 'changeStatType(this);', 
+      :style => 'margin-right: 20px; display:;' %>
+  </div>
 </div>
 
 <% team_slots = @team.get_slots_with_players %>
@@ -98,7 +117,7 @@
 
     <tbody>
       <% team_percentiles = @team.team_percentiles[type.to_sym] %>
-      <tr>
+      <tr class='team_percentile'>
         <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
         <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"></td>
         <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Average:</td>
@@ -113,7 +132,7 @@
           <% end %>
         <% end %>
       </tr>
-      <tr>
+      <tr class='team_percentile'>
         <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
         <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"></td>
         <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Total:</td>
@@ -128,6 +147,36 @@
         <% end %>
       </tr>
 
+      <% team_raw_stats = @team.team_raw_stats[type.to_sym] %>
+      <tr class='team_raw' style="display:none;">
+        <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"></td>
+        <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Average:</td>
+
+        <% category_order.each_with_index do |category, index| %>
+          <% next if index == 0 || index == 1 || index == 2 %>
+
+          <% if !team_raw_stats[category].nil? %>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"> <%= team_raw_stats[category][:avg_raw_stat].round(3) %> </td>
+          <% else %>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+          <% end %>
+        <% end %>
+      </tr>
+      <tr class='team_raw' style="display:none;">
+        <td style="width: <%= remove_player_cell_wid %>; min-width: <%= remove_player_cell_wid %>; max-width: <%= remove_player_cell_wid %>"></td>
+        <td style="width: <%= slot_cell_width %>; min-width: <%= slot_cell_width %>;"></td>
+        <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Total:</td>
+        <% category_order.each_with_index do |category, index| %>
+          <% next if index == 0 || index == 1 || index == 2 %>
+
+          <% if !team_raw_stats[category].nil? %>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= (team_raw_stats[category][:values].reduce(0, :+)).round(3) %></td>
+          <% else %>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+          <% end %>
+        <% end %>
+      </tr>
     </tbody>
   </table>
   <% first_table_for_team = false %>
