@@ -191,12 +191,29 @@ function scrollTeamHeader(e) {
 }
 
 
-function getTeamItemList() {
+function getTeamItemList(iconString) {
     list = { }
 
     $('div.teamName').each(function(index) {
         elem = $(this);
-        list[elem.attr('id')] = { name: elem.data('team-name'), icon: 'add' };
+        list[elem.attr('id')] = { name: elem.data('team-name'), icon: iconString };
+    });
+
+    list['sep1'] = '---------';
+    list['close'] = { name: 'Close', icon: 'quit' };
+
+    return list;
+}
+
+function getOtherTeamList(iconString) {
+    list = { }
+
+    $('div.teamName').each(function(index) {
+        elem = $(this);
+
+        if (elem.attr('id') != '1') {
+            list[elem.attr('id')] = { name: elem.data('team-name'), icon: iconString };
+        }
     });
 
     list['sep1'] = '---------';
@@ -211,6 +228,38 @@ function handleTeamListAction(key, options) {
     }
 }
 
+function handleTeamSwitchAction(key, options) {
+    if (key != 'close') {
+        teamNameDiv = this.closest('div.teamName')
+        oldTeamId = teamNameDiv.attr('id');
+        newTeamId = key;
+        currentPlayerType = teamNameDiv.find('#playerType' + oldTeamId + ' option:selected').text();
+        currentStatType = teamNameDiv.find('#statType' + oldTeamId + ' option:selected').text();
+
+        $('div.teamName#' + oldTeamId).hide();
+        $('table.team#bat' + oldTeamId).hide();
+        $('table.team#pit' + oldTeamId).hide();
+        $('table.teamTotals#bat' + oldTeamId + '-totals').hide();
+        $('table.teamTotals#pit' + oldTeamId + '-totals').hide();
+
+        new_teamNameDiv = $('div.teamName#' + newTeamId)
+        new_teamNameDiv.show();
+
+        $('table.team#bat' + newTeamId).show();
+        $('table.team#pit' + newTeamId).show();
+        $('table.teamTotals#bat' + newTeamId + '-totals').show();
+        $('table.teamTotals#pit' + newTeamId + '-totals').show();
+
+        playerType = new_teamNameDiv.find('#playerType' + newTeamId)
+        playerType.val(currentPlayerType);
+        playerType.change();
+
+        statType = new_teamNameDiv.find('#statType' + newTeamId)
+        statType.val(currentStatType);
+        statType.change();
+    }
+}
+
 function addPlayerToTeam(teamId, playerId) {
     showLoader();
 
@@ -219,7 +268,11 @@ function addPlayerToTeam(teamId, playerId) {
         url: '/draft_helpers/' + getId() + '/addPlayerToTeam',
         data: {
             'teamId': teamId,
-            'playerId': playerId
+            'playerId': playerId,
+            'settings': { 
+                'otherTeamSettings': getTeamSettingsForDivId('otherTeam'),
+                'myTeamSettings': getTeamSettingsForDivId('myTeam'),
+            }
         },
         error: function(xhr, status) {
             console.log("ajax error in addPlayerToTeam");
@@ -229,17 +282,53 @@ function addPlayerToTeam(teamId, playerId) {
     });
 }
 
+function getTeamSettingsForDivId(divId) {
+    settings = { }
+    div = $('#' + divId).find('div.teamName:visible')
+
+    settings['id'] = div.attr('id');
+    settings['playerType'] = div.find('select#playerType' + settings['id'] + ' :selected').text();
+    settings['statType'] = div.find('select#statType' + settings['id'] + ' :selected').text();
+
+    return settings;
+}
+
+function restorePreviousSettings() {
+    previous_settings = $('div#draftHelperContainer').data('settings');
+
+    if (!($.isEmptyObject(previous_settings))) {
+        myTeamSetttings = previous_settings['myTeamSettings'];
+        otherTeamSettings = previous_settings['otherTeamSettings'];
+
+        $('select#playerType' + myTeamSetttings['id']).val(myTeamSetttings['playerType']);
+        $('select#playerType' + myTeamSetttings['id']).change();
+
+        $('select#statType' + myTeamSetttings['id']).val(myTeamSetttings['statType']);
+        $('select#statType' + myTeamSetttings['id']).change();
+
+        $('select#playerType' + otherTeamSettings['id']).val(otherTeamSettings['playerType']);
+        $('select#playerType' + otherTeamSettings['id']).change();
+
+        $('select#statType' + otherTeamSettings['id']).val(otherTeamSettings['statType']);
+        $('select#statType' + otherTeamSettings['id']).change();
+    }
+}
+
 function removePlayerFromTeam(elem) {
     showLoader();
     playerId = $(elem).closest('tr').data('player-id');
-    teamId = $(elem).closest('table').siblings('div.teamName').attr('id');
+    teamId = $(elem).closest('table').data('team-id');
 
     $.ajax({
         type: 'POST',
         url: '/draft_helpers/' + getId() + '/removePlayerFromTeam',
         data: {
             'teamId': teamId,
-            'playerId': playerId
+            'playerId': playerId,
+            'settings': { 
+                'otherTeamSettings': getTeamSettingsForDivId('otherTeam'),
+                'myTeamSettings': getTeamSettingsForDivId('myTeam'),
+            }
         },
         error: function(xhr, status) {
             hideLoader();
@@ -259,18 +348,32 @@ function hideRemovePlayerButton() {
 
 function initContextMenus() {
     $.contextMenu('destroy', '.addPlayer');
+    $.contextMenu('destroy', '.otherTeamHeader');
 
     $.contextMenu({
         selector: '.addPlayer', 
-        className: 'data-title',
+        className: 'data-player-title',
         trigger: 'left',
         events: {
             show: function(options) {
-                $('.data-title').attr('data-menutitle', 'Add ' + this.parent().siblings('.playerName').text() + ' to:');
+                $('.data-player-title').attr('data-menutitle', 'Add ' + this.parent().siblings('.playerName').text() + ' to:');
             }
         },
         callback: handleTeamListAction,
-        items: getTeamItemList()
+        items: getTeamItemList('add'),
+    });
+
+    $.contextMenu({
+        selector: '.otherTeamHeader',
+        className: 'data-team-name',
+        trigger: 'left',
+        events: {
+            show: function(options) {
+                $('.data-team-name').attr('data-menutitle', 'Switch to team: ');
+            }
+        },
+        callback: handleTeamSwitchAction,
+        items: getOtherTeamList('fa-exchange'),
     });
 }
 
@@ -325,6 +428,8 @@ function changeStatType(select) {
 
 ready = function() {
     $('body').addClass('stop-scrolling')
+
+    restorePreviousSettings();
 
     changeDisplayedPlayersTable($('select#playersTable').get(0))
     // document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);

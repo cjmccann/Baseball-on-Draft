@@ -2,39 +2,9 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
-/**
-table {
-    table-layout: fixed;
-    width: auto;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-thead, tbody { display: block; }
-
-tbody {
-    height: 400px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-tbody.team {
-    height: 250px;
-}
-//tbody td, thead th {
-//     width: 15%;
-// }
-
-th, td {
-    min-width:85px;
-}L[MaL[MaL[MaL[MaL[MaL[MaL
-**/
-
 img, .otherTeamHeader {
     cursor:pointer;
 }
-
-
 
 table {
     font-size:12px;

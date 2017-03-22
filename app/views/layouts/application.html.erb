@@ -8,10 +8,6 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
-  <div id="pageHeader">
-    <p class="notice"><%= notice %></p>
-    <p class="alert"><%= alert %></p>
-
     <% if user_signed_in? %>
       <div style="text-align:right;">
         <strong><%= current_user.email %></strong>
@@ -24,7 +20,10 @@
       <%= link_to "Login", new_user_session_path, :class => 'navbar-link'  %>
       <hr>
     <% end %>
-  </div>
+
+    <p class="notice"><%= notice %></p>
+    <p class="alert"><%= alert %></p>
+
 
   <%= yield %>
 </body>

@@ -42,15 +42,33 @@ class DraftHelpersController < ApplicationController
     @draft_helper = DraftHelper.find(params[:id])
     @data_manager = @draft_helper.data_manager
 
-    @my_team = @draft_helper.league.my_team
+    if params[:settings]
+      @settings = params[:settings] 
+      otherTeamId = @settings[:otherTeamSettings][:id].to_i
+    else
+      @settings = { }
+      otherTeamId = nil
+    end
+
+    team = @draft_helper.league.my_team
+    @my_team = { :id => team.id, :name => team.name, :slots_with_players => team.get_slots_with_players, 
+                 :team_percentiles => team.team_percentiles, :team_raw_stats => team.team_raw_stats, :hidden => false }
+
     @other_teams = [ ]
+
     @draft_helper.league.teams.each do |team|
       if team.name != 'My Team'
-        @other_teams.push(team)
+        if otherTeamId.nil?
+          otherTeamId = team.id
+        end
+
+        @other_teams.push({ :id => team.id, :name => team.name, :slots_with_players => team.get_slots_with_players, 
+                             :team_percentiles => team.team_percentiles, :team_raw_stats => team.team_raw_stats, :hidden => (otherTeamId != team.id) })
       end
     end
 
     @sorted_list = { :div_id => 'availablePlayersDummy', :value_label => 'Value', :list => [], :minmax => { } }
+
     authorize! :read, @draft_helper
   end
 
@@ -60,7 +78,7 @@ class DraftHelpersController < ApplicationController
     player = Player.find(params[:playerId])
 
     if (team.add_player(player))
-      redirect_to draft_helper_path(draft_helper)
+      redirect_to draft_helper_path(draft_helper, { :settings => params[:settings] })
     else
       render :status => 400
     end
@@ -72,7 +90,7 @@ class DraftHelpersController < ApplicationController
     player = Player.find(params[:playerId])
 
     if (team.remove_player(player))
-      redirect_to draft_helper_path(draft_helper)
+      redirect_to draft_helper_path(draft_helper, { :settings => params[:settings] })
     else
       render :status => 400
     end
@@ -106,6 +124,6 @@ class DraftHelpersController < ApplicationController
 
   private
   def draft_helper_params
-    params.require(:draft_helper).permit()
+    params.require(:draft_helper).permit(:settings, :teamId, :playerId)
   end
 end

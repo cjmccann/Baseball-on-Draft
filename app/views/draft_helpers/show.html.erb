@@ -4,11 +4,10 @@
 <% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
 <%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
 
-<div id="draftHelperContainer" style="height: 98vh; width: 100%;">
+<div id="draftHelperContainer" style="height: 98vh; width: 100%;" data-settings="<%= @settings.to_json %>">
   <div style="height: 45vh;" id="teams" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
 
     <div class="team" id="myTeam">
-
       <div class="teamTableContainer">
         <% @team = @my_team %>
         <%= render 'team' %>
@@ -17,11 +16,9 @@
 
     <div class="team" id="otherTeam">
       <div class="teamTableContainer">
-        <% @is_hidden = false %>
         <% @other_teams.each do |team| %>
-            <% @team = team %>
-            <%= render 'team' %>
-          <% @is_hidden = true %>
+          <% @team = team %>
+          <%= render 'team' %>
         <% end %>
       </div>
     </div>

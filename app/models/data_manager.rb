@@ -418,17 +418,31 @@ class DataManager < ActiveRecord::Base
 
   def set_positional_adjustments()
     volatilities = { :bat => { }, :pit => { } }
-    subset_size = 10
+
+    # there are many fewer players drafted from each batter position, 
+    # so our volaility reflects this subset size.
+    batter_subset_size = 10
+
+    # assume 3 to 1 ratio SP:RP in leagues, rough estimate
+    # TODO: refine this
+    sp_subset_size = 30
+    rp_subset_size = 10
 
     batter_slots.each do |pos, _|
       # TODO: Excluding RF/LF/CF due to league settings, only need OF slots
       next if pos == "CI" || pos == "MI" || pos == "UTIL" || pos == "RF" || pos == "LF" || pos == "CF"
-      volatilities[:bat][pos] = get_volatility_for_position(pos, subset_size)
+      volatilities[:bat][pos] = get_volatility_for_position(pos, batter_subset_size)
     end
 
     pitcher_slots.each do |pos, _|
       next if pos == "P"
-      volatilities[:pit][pos] = get_volatility_for_position(pos, subset_size)
+
+      if pos == "SP"
+        volatilities[:pit][pos] = get_volatility_for_position(pos, sp_subset_size)
+      elsif pos == "RP"
+        volatilities[:pit][pos] = get_volatility_for_position(pos, rp_subset_size)
+      end
+
     end
 
     avg_batter_volatility = volatilities[:bat].values.reduce(0, :+) / volatilities[:bat].length
