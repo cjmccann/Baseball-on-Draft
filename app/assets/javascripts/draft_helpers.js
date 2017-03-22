@@ -244,9 +244,9 @@ function getOtherTeamList(iconString) {
         }
     });
 
-    list['bestHitting'] = { name: 'Best hitting team (current)', icon: iconString }
-    list['bestPitching'] = { name: 'Best pitching team (current)', icon: iconString }
-    list['bestOverall'] = { name: 'Best overall team (current)', icon: iconString }
+    list['bestHitting'] = { name: 'Current best hitting team', icon: iconString }
+    list['bestPitching'] = { name: 'Current best pitching team', icon: iconString }
+    list['bestOverall'] = { name: 'Current best team overall', icon: iconString }
 
     list['sep1'] = '---------';
     list['close'] = { name: 'Close', icon: 'quit' };

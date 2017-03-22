@@ -16,7 +16,7 @@
   </div>
 
   <div style="width: 33%; display:inline; position:absolute; right: 0; bottom:0px;">
-    <% options = ['Raw Stats', 'Percentiles' ] %>
+    <% options = [ 'Percentiles', 'Raw Stats' ] %>
     <%= select_tag "statType#{@team[:id]}", options_for_select(options, 'Percentiles'), :onchange => 'changeStatType(this);', 
       :style => 'margin-right: 20px; display:;' %>
   </div>

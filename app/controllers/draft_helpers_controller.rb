@@ -59,6 +59,8 @@ class DraftHelpersController < ApplicationController
     @best_hitting_team = { :id => 0, :avg_percentile => 0 }
     @best_pitching_team = { :id => 0, :avg_percentile => 0 }
     @best_overall_team = { :id => 0, :avg_percentile => 0 }
+    average_team_percentile_values = { :bat => { }, :pit => { } }
+    average_team_raw_values = { :bat => { }, :pit => { } }
 
     @draft_helper.league.teams.each do |team|
       if team.name != 'My Team'
@@ -83,10 +85,49 @@ class DraftHelpersController < ApplicationController
           @best_overall_team[:avg_percentile] = avg_percentiles['overall']
         end
 
+        team.team_percentiles.each do |type, set|
+          set.each do |category, data|
+            average_team_percentile_values[type][category] = [ ] if average_team_percentile_values[type][category].nil? 
+
+            average_team_percentile_values[type][category].push(data[:avg_percentile])
+          end
+        end
+
+        team.team_raw_stats.each do |type, set|
+          set.each do |category, data|
+            average_team_raw_values[type][category] = [ ] if average_team_raw_values[type][category].nil? 
+
+            average_team_raw_values[type][category].push(data[:avg_raw_stat])
+          end
+        end
+
         @other_teams.push({ :id => team.id, :name => team.name, :slots_with_players => team.get_slots_with_players, 
                              :team_percentiles => team.team_percentiles, :team_raw_stats => team.team_raw_stats, :hidden => (otherTeamId != team.id) })
       end
     end
+
+    average_team_percentiles = { :bat => { }, :pit => { } }
+    average_team_raw_stats = { :bat => { }, :pit => { } }
+
+    average_team_percentile_values.each do |type, set|
+      set.each do |category, values|
+        average_team_percentiles[type][category] = { :avg_percentile => 0.0, :values => [ ] } if average_team_percentiles[type][category].nil?
+
+        average_team_percentiles[type][category][:avg_percentile] = (values.reduce(0, :+) / values.length).round(3)
+      end
+    end
+
+    average_team_raw_values.each do |type, set|
+      set.each do |category, values|
+        average_team_raw_stats[type][category] = { :avg_raw_stat => nil, :values => [ ] } if average_team_raw_stats[type][category].nil?
+
+        average_team_raw_stats[type][category][:avg_raw_stat] = (values.reduce(0, :+) / values.length).round(3)
+      end
+    end
+
+    @other_teams.push( { :id => 'allOtherTeamAvgs', :name => 'All Other Teams (Avg)', :slots_with_players => { 'bat' => [ ], 'pit' => [ ] },
+                         :team_percentiles => average_team_percentiles, :team_raw_stats => average_team_raw_stats, :hidden => true });
+
 
     @sorted_list = { :div_id => 'availablePlayersDummy', :value_label => 'Value', :list => [], :minmax => { } }
 
