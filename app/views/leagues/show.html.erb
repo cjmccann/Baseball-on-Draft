@@ -30,13 +30,10 @@
 <hr>
 
 <% if @league.draft_helper.nil? %>
-  <%= button_to 'Generate Draft Helper', new_league_draft_helper_path(@league), { :method => :get } %>
+  <%= button_to 'Generate Draft Helper (this will take about 20 seconds!)', new_league_draft_helper_path(@league), { :method => :get } %>
 <% else %>
   <%= button_to 'View Draft Helper', draft_helper_path(@league.draft_helper), { :method => :get } %>
-  <%= button_to 'Regenerate draft helper with new settings', @league.draft_helper.regenerate %> 
 <% end %>
 
-<br>
-<br>
 <hr>
 <%= link_to 'Back', leagues_path %>

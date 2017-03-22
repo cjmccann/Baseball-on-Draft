@@ -14,9 +14,6 @@ class DraftHelper < ActiveRecord::Base
   serialize :drafted_player_ids, Hash
   serialize :drafted_player_ids_by_team, Hash
 
-  def regenerate
-  end
-
   def pitchers
     Player.where( { player_type: "pit" } )
   end

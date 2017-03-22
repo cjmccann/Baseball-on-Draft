@@ -26,7 +26,7 @@
 
         <tbody>
         <% @sorted_list[:list].each_with_index do |player, index| %>
-          <% break if index > 300 %>
+          <% break if index > 400 %>
 
           <% player[:position].nil? ? position = '' : position = player[:position] %>
           <tr class="<%= "player percentile " + position %>" data-player-id="<%= player[:id] %>">

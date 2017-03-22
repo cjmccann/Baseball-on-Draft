@@ -27,6 +27,7 @@ function changeDisplayedPlayersTable(select) {
                 setTableVisibility(options, select.value);
                 filterByPositionValue($('select#position').find(':selected').text());
                 enableTableDropdown();
+                searchAvailablePlayers($('#playerNameSearch')[0]);
                 hideLoader();
             }
         });
@@ -37,6 +38,29 @@ function changeDisplayedPlayersTable(select) {
 
 function disableTableDropdown() {
     $("select#playersTable").prop('disabled', true);
+}
+
+function searchAvailablePlayers(input) {
+    filter = input.value.toUpperCase();
+
+    tbody = $('table.availablePlayers:visible').find('tbody');
+    trIdPrefix = 'tr' + getSelectedStatsType();
+    matching_positions = getSelectedPositionClasses();
+
+    for (index in matching_positions) {
+        trs = tbody.find(trIdPrefix + matching_positions[index])
+
+        trs.each(function() {
+            tr = $(this)
+            td = tr.find('td.playerName');
+
+            if(td.text().toUpperCase().indexOf(filter) > -1) {
+                tr.show();
+            } else {
+                tr.hide();
+            }
+        });
+    }
 }
 
 function enableTableDropdown() {
@@ -94,6 +118,8 @@ function filterByPositionValue(value) {
     for(index in matchingPositions) {
         $('tr.' + matchingPositions[index] + getSelectedStatsType()).show();
     }
+
+    searchAvailablePlayers($('#playerNameSearch')[0]);
 }
 
 function getMatchingPositions(position) {
@@ -145,6 +171,8 @@ function changeStatsType(input) {
             $('tr.percentile' + matching_positions[index]).show();
         }
     }
+
+    searchAvailablePlayers($('#playerNameSearch')[0]);
 }
 
 function getSelectedStatsType() {

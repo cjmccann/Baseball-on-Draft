@@ -42,10 +42,16 @@
 
 
       <div style="width:100%">
+
+        <label style="margin-left:0px; margin-right:5px;">Search</label>
+        <input style="margin-right:25px;" type="text" id="playerNameSearch" onkeyup="searchAvailablePlayers(this)" placeholder="Search for names..">
+
         <label style="margin-right:5px;">Show percentiles</label>
         <%= radio_button_tag(:stats_type, 'percentile', true, { :onchange => 'changeStatsType(this)' }) %>
         <label style="margin-left:20px; margin-right:5px;">Show raw stats</label>
         <%= radio_button_tag(:stats_type, 'raw', false, { :onchange => 'changeStatsType(this)' }) %>
+
+
 
         <label style="margin-left: 40px;">Position</label>
         <% pos_options = ['All'] + @draft_helper.data_manager.batter_slots.keys + @draft_helper.data_manager.pitcher_slots.keys %>
@@ -57,4 +63,9 @@
     <%= render 'player_table' %>
     <% @is_first_table = false %>
   </div>
+</div>
+
+<div style="position:fixed; left:20px; bottom:20px;">
+  <%= link_to 'Back to league', league_path %> | 
+  <%= link_to 'Edit League Settings', setting_manager_path %>
 </div>
