@@ -56,10 +56,31 @@ class DraftHelpersController < ApplicationController
 
     @other_teams = [ ]
 
+    @best_hitting_team = { :id => 0, :avg_percentile => 0 }
+    @best_pitching_team = { :id => 0, :avg_percentile => 0 }
+    @best_overall_team = { :id => 0, :avg_percentile => 0 }
+
     @draft_helper.league.teams.each do |team|
       if team.name != 'My Team'
         if otherTeamId.nil?
           otherTeamId = team.id
+        end
+
+        avg_percentiles = team.get_average_team_percentiles
+
+        if (avg_percentiles['bat'] > @best_hitting_team[:avg_percentile])
+          @best_hitting_team[:id] = team.id
+          @best_hitting_team[:avg_percentile] = avg_percentiles['bat']
+        end
+
+        if (avg_percentiles['pit'] > @best_pitching_team[:avg_percentile])
+          @best_pitching_team[:id] = team.id
+          @best_pitching_team[:avg_percentile] = avg_percentiles['pit']
+        end
+
+        if (avg_percentiles['overall'] > @best_overall_team[:avg_percentile])
+          @best_overall_team[:id] = team.id
+          @best_overall_team[:avg_percentile] = avg_percentiles['overall']
         end
 
         @other_teams.push({ :id => team.id, :name => team.name, :slots_with_players => team.get_slots_with_players, 

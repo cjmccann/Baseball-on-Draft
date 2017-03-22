@@ -14,7 +14,9 @@
       </div>
     </div>
 
-    <div class="team" id="otherTeam">
+    <div class="team" id="otherTeam" data-best-hitting="<%= @best_hitting_team.to_json %>" 
+                                     data-best-pitching="<%= @best_pitching_team.to_json %>"
+                                     data-best-overall="<%= @best_overall_team.to_json %>">
       <div class="teamTableContainer">
         <% @other_teams.each do |team| %>
           <% @team = team %>

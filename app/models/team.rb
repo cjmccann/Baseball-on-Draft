@@ -90,6 +90,30 @@ class Team < ActiveRecord::Base
     return slots
   end
 
+  def get_average_team_percentiles()
+   target_percentiles = get_target_percentiles(self.team_percentiles) 
+
+   bat_percentile_sum = 0
+   pit_percentile_sum = 0
+
+   target_percentiles[:bat].values.each do |avg_percentile|
+     bat_percentile_sum += avg_percentile
+   end
+
+   target_percentiles[:pit].values.each do |avg_percentile|
+     pit_percentile_sum += avg_percentile
+   end
+
+   bat_val = (bat_percentile_sum / target_percentiles[:bat].values.length).round(3)
+   pit_val = (pit_percentile_sum / target_percentiles[:pit].values.length).round(3)
+   overall_val = ((bat_percentile_sum + pit_percentile_sum) / 
+                  (target_percentiles[:bat].values.length + target_percentiles[:pit].values.length)).round(3)
+
+   return { 'bat' => bat_val, 'pit' => pit_val, 'overall' => overall_val }
+  end
+
+
+
   def get_target_percentiles(team_percentiles)
     target_percentiles = { :bat => { }, :pit => { } }
 

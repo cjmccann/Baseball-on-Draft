@@ -244,6 +244,10 @@ function getOtherTeamList(iconString) {
         }
     });
 
+    list['bestHitting'] = { name: 'Best hitting team (current)', icon: iconString }
+    list['bestPitching'] = { name: 'Best pitching team (current)', icon: iconString }
+    list['bestOverall'] = { name: 'Best overall team (current)', icon: iconString }
+
     list['sep1'] = '---------';
     list['close'] = { name: 'Close', icon: 'quit' };
 
@@ -260,7 +264,25 @@ function handleTeamSwitchAction(key, options) {
     if (key != 'close') {
         teamNameDiv = this.closest('div.teamName')
         oldTeamId = teamNameDiv.attr('id');
-        newTeamId = key;
+
+        if (key != 'bestHitting' && key != 'bestPitching' && key != 'bestOverall')
+            newTeamId = key;
+        else {
+            otherTeamDiv = $('div#otherTeam');
+
+            switch(key) {
+                case "bestHitting":
+                    newTeamId = otherTeamDiv.data('best-hitting')['id'];
+                    break;
+                case "bestPitching":
+                    newTeamId = otherTeamDiv.data('best-pitching')['id'];
+                    break;
+                case "bestOverall":
+                    newTeamId = otherTeamDiv.data('best-overall')['id'];
+                    break;
+            }
+        }
+
         currentPlayerType = teamNameDiv.find('#playerType' + oldTeamId + ' option:selected').text();
         currentStatType = teamNameDiv.find('#statType' + oldTeamId + ' option:selected').text();
 
