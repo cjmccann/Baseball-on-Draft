@@ -1,3 +1,61 @@
 // Place all the styles related to the Leagues controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+table {
+    background:#eaebec;
+    border:#ccc 1px solid;
+    border-radius:3px;
+    border-collapse:collapse; border-spacing: 0; 
+    box-shadow: 0 1px 2px #d1d1d1;
+    overflow: auto;
+    margin: 0 auto;
+}
+
+table thead {
+    z-index: 1; /* put on top of other rows */
+    display: block;
+    position: fixed;
+
+    /* make sure this header width is same as table */
+    max-width: 45%;
+    overflow-y: auto; /* use auto so scrollbars only appear if they need to*/
+    overflow-x: auto;
+}
+
+table tbody {
+    display: block;
+    width:390px;
+}
+table th {
+    padding:2px 2px 2px 2px;
+    border-top:0;
+    border-bottom:1px solid #e0e0e0;
+    border-left: 1px solid #e0e0e0;
+    background: #ededed;
+}
+
+table tr {
+    text-align: center;
+}
+/* only using !important to override your styles below */
+table td {
+    margin-left: 0 !important;
+    width: 50px !important;
+    padding:2px 2px 2px 2px;
+    border-top:0;
+    border-bottom:1px solid #e0e0e0;
+    border-left: 1px solid #e0e0e0;
+    min-width:125px;
+}
+
+table tr  {
+    width: 90px;
+    min-width: 90px;
+    height:30px;
+}
+
+input {
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 400;
+}

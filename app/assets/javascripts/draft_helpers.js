@@ -26,6 +26,7 @@ function changeDisplayedPlayersTable(select) {
             },
             complete: function (xhr, status) {
                 setTableVisibility(options, select.value);
+                changeStatsType($('input[name="stats_type"]:checked').get(0));
                 filterByPositionValue($('select#position').find(':selected').text());
                 enableTableDropdown();
                 searchAvailablePlayers($('#playerNameSearch')[0]);
@@ -491,18 +492,20 @@ function changeStatType(select) {
 }
 
 ready = function() {
-    $('body').addClass('stop-scrolling')
+    if (document.getElementById('availablePlayers') != null) {
+        $('body').addClass('stop-scrolling')
 
-    restorePreviousSettings();
+        restorePreviousSettings();
 
-    changeDisplayedPlayersTable($('select#playersTable').get(0))
-    setTeamHeaderScrolls();
-    // document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
+        changeDisplayedPlayersTable($('select#playersTable').get(0))
+        setTeamHeaderScrolls();
+        // document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
 
-    $('table#myTeam').on('scroll', scrollTeamHeader);
-    $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
+        $('table#myTeam').on('scroll', scrollTeamHeader);
+        $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
 
-    initContextMenus();
+        initContextMenus();
+    }
 }
 
 document.addEventListener('turbolinks:load', ready);

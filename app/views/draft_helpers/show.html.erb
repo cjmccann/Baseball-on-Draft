@@ -47,7 +47,8 @@
 
       <div style="width:100%; margin-bottom:5px;">
         <label style="margin: 0 10px;">Sort by: </label>
-        <% options = ['Cumulative percentile difference', 'Distance from league averages', 'Absolute percentiles', 'Absolute percentiles with positional adjustment', "Absolute percentiles, positional + remaining slot adjustment"] %>
+        <% options = ['Cumulative percentile difference', 'Distance from league averages', 'Absolute percentiles', 'Absolute percentiles with positional adjustment'] %>
+        <% # removed input option: "Absolute percentiles, positional + remaining slot adjustment" %>
         <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin-right: 20px;' %>
       </div>
 

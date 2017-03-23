@@ -1,17 +1,25 @@
+<%= stylesheet_link_tag params[:controller] %>
+
+<div style="display:flex; justify-content: center; align-items:center;">
+  <% logo_attrs = {  alt: "change team shown", style: "height:125px; background-color:white;" } %>
+  <%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
+
+  <h2 style="display:inline; background-color:white; padding-right:15px;">Baseball on Draft</h2>
+</div>
+
+<br>
+<br>
+<br>
+<div>
   <% if user_signed_in? %>
     <h2> Available Leagues </h2>
       <table>
-        <tr>
-            <th>Name</th>
-        </tr>
-
         <% @leagues.each do |league| %>
           <% if can? :read, league %>
             <tr>
-                <td><%= league.name %></td>
-                <td><%= link_to 'Show', league_path(league) %></td>
-                <td><%= link_to 'Edit', edit_league_path(league) %></td>
-                <td><%= link_to 'Destroy', league_path(league),
+                <td style="font-weight: 500;"><%= league.name %></td>
+                <td><%= fa_icon "chevron-right" %><%= link_to 'Show', league_path(league), style: "margin-left:10px;" %></td>
+                <td><%= link_to 'Delete', league_path(league),
                     method: :delete,
                     data: { confirm: 'Are you sure?' } %></td>
             </tr>
@@ -23,3 +31,4 @@
   <% else %>
     <h3> Please sign in to see your league data! </h3>
   <% end %>
+</div>

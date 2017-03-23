@@ -1,3 +1,11 @@
+<div style="background-color:#e0e0e0;">
+  <% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
+  <%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
+
+  <h2 style="display:inline; position:fixed; top:5px; left:65px; background-color:white; padding-right:15px;">Baseball on Draft</h2>
+</div>
+
+<br>
 <h1> Update settings for league: <%= @setting_manager.league.name %> </h1>
 
 <%= render 'form' %>

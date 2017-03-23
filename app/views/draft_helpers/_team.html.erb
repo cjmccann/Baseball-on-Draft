@@ -29,7 +29,7 @@
 <% minmax = { :min => 0, :max => 100 } %>
 <% first_table_for_team = true %>
 <% remove_player_cell_wid = "20px" %>
-<% remove_player_img_attrs = { alt: "remove player", style: "max-width:100%; display:none;", onclick: 'removePlayerFromTeam(this)' } %>
+<% remove_player_img_attrs = { class: "removePlayer", alt: "remove player", style: "max-width:100%; display:none;", onclick: 'removePlayerFromTeam(this)' } %>
 
 <% team_slots.each do |type, position_set| %>
   <table class="<%= "team " + type %>" id="<%= type + @team[:id].to_s %>" style="<%= "display:none;" if (!first_table_for_team || @team[:hidden]) %>" data-team-id="<%= @team[:id] %>">

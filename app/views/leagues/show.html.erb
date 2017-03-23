@@ -1,39 +1,60 @@
-<p>
-<h1>League: <%= @league.name %></h1>
-<%= link_to 'Edit league settings', setting_manager_path(@league.setting_manager) %>
-</p>
+<%= stylesheet_link_tag params[:controller] %>
 
-<br>
-<h2>Current teams</h2>
-<table>
-    <tr>
-        <th>Name</th>
-    </tr>
+<div style="background-color:#e0e0e0;">
+  <% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
+  <%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
 
-    <% @league.teams.each do |team| %>
-        <tr>
-            <td><%= team.name %></td>
-              <td><%= link_to 'Show Players', team_path(team) %></td>
-            <% if team.name != "My Team" %>
-              <td><%= link_to 'Edit Name', edit_team_path(team) %></td>
-            <td><%= link_to 'Destroy', team_path(team),
-                method: :delete,
-                data: { confirm: 'Are you sure?' } %></td>
-            <% end %>
-        </tr>
+  <h2 style="display:inline; position:fixed; top:5px; left:65px; background-color:white; padding-right:15px;">Baseball on Draft</h2>
+</div>
+
+<div style="position:fixed; top:40px; right:10px; font-size:14px;">
+  <%= link_to 'Back to League List', root_path %> | 
+  <%= link_to 'Edit League Settings', setting_manager_path %>
+</div>
+
+<div style="text-align: center;">
+  <p>
+  <h2>League: <%= @league.name %></h2>
+  <%= button_to 'Edit League Settings', setting_manager_path, { :method => :get, :class => "ui-button ui-widget ui-corner-all", :style => "display: inline-block" } %>
+  </p>
+
+  <br>
+  <h2>Current Teams</h2>
+  <table style="table-align:center; margin:0 auto;">
+      <% @league.teams.each do |team| %>
+          <tr>
+              <td><%= team.name %></td>
+              <% if team.name != "My Team" %>
+                <td><%= link_to 'Edit Name', edit_team_path(team) %></td>
+              <td><%= link_to 'Delete', team_path(team),
+                  method: :delete,
+                  data: { confirm: 'Are you sure?' } %></td>
+              <% else %>
+                <td></td>
+                <td></td>
+              <% end %>
+          </tr>
+      <% end %>
+  </table>
+
+  <br>
+  <%= button_to 'Add new team', new_league_team_path(@league), { :method => :get, :class => "ui-button ui-widget ui-corner-all" } =%>
+  <br>
+
+  <h3>(Add teams to match your league's users!)</h3>
+
+  <br>
+  <br>
+  <hr>
+  <div style="width:100%;">
+    <% if @league.draft_helper.nil? %>
+      <%= button_to 'Generate Draft Helper!', new_league_draft_helper_path(@league), 
+        { :method => :get, :class => "ui-button ui-widget ui-corner-all", :style => "display: inline-block; font-size: 30px;" } %>
+      <h3>This will take about 20 seconds.</h3>
+      <h3>League settings and teams can be modified afterwards.</h3>
+    <% else %>
+      <%= button_to 'View Draft Helper', draft_helper_path(@league.draft_helper), 
+        { :method => :get, :class => "ui-button ui-widget ui-corner-all", :style => "display: inline-block; font-size: 30px;" } %>
     <% end %>
-</table>
-
-<br>
-<%= button_to 'Add new team', new_league_team_path(@league), { :method => :get } =%>
-
-<hr>
-
-<% if @league.draft_helper.nil? %>
-  <%= button_to 'Generate Draft Helper (this will take about 20 seconds!)', new_league_draft_helper_path(@league), { :method => :get } %>
-<% else %>
-  <%= button_to 'View Draft Helper', draft_helper_path(@league.draft_helper), { :method => :get } %>
-<% end %>
-
-<hr>
-<%= link_to 'Back', leagues_path %>
+  </div>
+</div>

@@ -204,6 +204,9 @@ class DataManager < ActiveRecord::Base
         mean = self.means[player.id][category]
       end
 
+      league_percentiles[category] = 0 if league_percentiles[category].nil?
+      league_raw_stats[category] = 0 if league_raw_stats[category].nil?
+
       d_percentile = (current_percentile - league_percentiles[category]).round(3)
       d_raw_stats = ((mean - league_raw_stats[category]).round(3))
 
