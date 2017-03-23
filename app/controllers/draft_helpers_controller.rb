@@ -59,8 +59,8 @@ class DraftHelpersController < ApplicationController
     @best_hitting_team = { :id => 0, :avg_percentile => 0 }
     @best_pitching_team = { :id => 0, :avg_percentile => 0 }
     @best_overall_team = { :id => 0, :avg_percentile => 0 }
-    average_team_percentile_values = { :bat => { }, :pit => { } }
-    average_team_raw_values = { :bat => { }, :pit => { } }
+    team_percentile_values = { :bat => { }, :pit => { } }
+    team_raw_values = { :bat => { }, :pit => { } }
 
     @draft_helper.league.teams.each do |team|
       if team.name != 'My Team'
@@ -87,17 +87,17 @@ class DraftHelpersController < ApplicationController
 
         team.team_percentiles.each do |type, set|
           set.each do |category, data|
-            average_team_percentile_values[type][category] = [ ] if average_team_percentile_values[type][category].nil? 
+            team_percentile_values[type][category] = [ ] if team_percentile_values[type][category].nil? 
 
-            average_team_percentile_values[type][category].push(data[:avg_percentile])
+            team_percentile_values[type][category].push(data[:avg_percentile])
           end
         end
 
         team.team_raw_stats.each do |type, set|
           set.each do |category, data|
-            average_team_raw_values[type][category] = [ ] if average_team_raw_values[type][category].nil? 
+            team_raw_values[type][category] = [ ] if team_raw_values[type][category].nil? 
 
-            average_team_raw_values[type][category].push(data[:avg_raw_stat])
+            team_raw_values[type][category].push(data[:avg_raw_stat])
           end
         end
 
@@ -109,15 +109,15 @@ class DraftHelpersController < ApplicationController
     average_team_percentiles = { :bat => { }, :pit => { } }
     average_team_raw_stats = { :bat => { }, :pit => { } }
 
-    average_team_percentile_values.each do |type, set|
+    team_percentile_values.each do |type, set|
       set.each do |category, values|
-        average_team_percentiles[type][category] = { :avg_percentile => 0.0, :values => [ ] } if average_team_percentiles[type][category].nil?
+        average_team_percentiles[type][category] = { :avg_percentile => nil, :values => [ ] } if average_team_percentiles[type][category].nil?
 
         average_team_percentiles[type][category][:avg_percentile] = (values.reduce(0, :+) / values.length).round(3)
       end
     end
 
-    average_team_raw_values.each do |type, set|
+    team_raw_values.each do |type, set|
       set.each do |category, values|
         average_team_raw_stats[type][category] = { :avg_raw_stat => nil, :values => [ ] } if average_team_raw_stats[type][category].nil?
 
@@ -175,6 +175,9 @@ class DraftHelpersController < ApplicationController
     when 'availablePlayersAbsolutePosSlot'
       sorted_obj = @draft_helper.data_manager.get_sorted_players_list_with_pos_adjustments_plus_slots
       value_label = 'Abs. % sum, pos+slot adj'
+    when 'availablePlayersDiffFromAverage'
+      sorted_obj = @draft_helper.data_manager.get_sorted_players_distance_from_league_averages()
+      value_label = "Avg distance from league avg"
     else
       render :status => 400
     end

@@ -128,6 +128,107 @@ class DataManager < ActiveRecord::Base
     return { :players => player_values.sort_by! { |obj| (-1) * obj[:value] }, :minmax => minmax }
   end
 
+  def get_mean_stats_for_all_other_teams
+    team_percentile_values = { :bat => { }, :pit => { } }
+    team_raw_values = { :bat => { }, :pit => { } }
+
+    self.draft_helper.teams.each do |team|
+      if team.name != 'My Team'
+
+        team.team_percentiles.each do |type, set|
+          set.each do |category, data|
+            team_percentile_values[type][category] = [ ] if team_percentile_values[type][category].nil? 
+
+            team_percentile_values[type][category].push(data[:avg_percentile])
+          end
+        end
+
+        team.team_raw_stats.each do |type, set|
+          set.each do |category, data|
+            team_raw_values[type][category] = [ ] if team_raw_values[type][category].nil? 
+
+            team_raw_values[type][category].push(data[:avg_raw_stat])
+          end
+        end
+      end
+    end
+
+    average_team_percentiles = { 'bat' => { }, 'pit' => { } }
+    average_team_raw_stats = { 'bat' => { }, 'pit' => { } }
+
+    team_percentile_values.each do |type, set|
+      set.each do |category, values|
+        average_team_percentiles[type.to_s][category] = (values.reduce(0, :+) / values.length).round(3)
+      end
+    end
+
+    team_raw_values.each do |type, set|
+      set.each do |category, values|
+        average_team_raw_stats[type.to_s][category] = (values.reduce(0, :+) / values.length).round(3)
+      end
+    end
+
+    return { 'percentiles' => average_team_percentiles, 'raw_stats' => average_team_raw_stats }
+  end
+
+  def get_sorted_players_distance_from_league_averages()
+    player_values = [ ]
+    minmax = { :min => 0, :max => 0 }
+    mean_league_stats = get_mean_stats_for_all_other_teams
+
+    all_players.each do |player|
+      unless is_drafted?(player)
+        data = get_player_distance_away_from_league_averages(player, mean_league_stats, minmax)
+
+        player_values.push({ :value => data[:avg_percentile_distance], :id => player.id, :categories => data[:percentile_distances],
+                             :means => data[:raw_stats_distances], :name => player.name, :player_type => player.player_type, 
+                             :position => player.position })
+      end
+    end
+
+    return { :players => player_values.sort_by! { |obj| (-1) * obj[:value] }, :minmax => minmax }
+  end
+
+  def get_player_distance_away_from_league_averages(player, mean_league_stats, minmax)
+    distance_obj = { :avg_percentile_distance => 0, :percentile_distances => { }, :raw_stats_distances => { } }
+
+    league_percentiles = mean_league_stats['percentiles'][player.player_type]
+    league_raw_stats = mean_league_stats['raw_stats'][player.player_type]
+
+    target_stats[player.player_type.to_sym].each do |category|
+      if self.current_percentiles[player.id][category].nil?
+        current_percentile = 0
+        mean = 0
+      else
+        current_percentile = self.current_percentiles[player.id][category]
+        mean = self.means[player.id][category]
+      end
+
+      d_percentile = (current_percentile - league_percentiles[category]).round(3)
+      d_raw_stats = ((mean - league_raw_stats[category]).round(3))
+
+      if d_raw_stats > 0
+        d_raw_stats = '+' + d_raw_stats.to_s
+      elsif d_raw_stats < 0
+        d_raw_stats = d_raw_stats.to_s
+      end
+
+      distance_obj[:percentile_distances][category] = d_percentile
+      distance_obj[:raw_stats_distances][category] = d_raw_stats
+
+      if d_percentile > minmax[:max]
+        minmax[:max] = d_percentile
+      elsif d_percentile < minmax[:min]
+        minmax[:min] = d_percentile
+      end
+    end
+
+    distance_obj[:avg_percentile_distance] = (distance_obj[:percentile_distances].values.reduce(0, :+) / 
+                                              distance_obj[:percentile_distances].values.length).round(3)
+
+    return distance_obj
+  end
+
   def get_sorted_players_list_with_pos_adjustments(pos = nil)
     player_values = [ ]
     minmax = { :min => 0, :max => 0 }

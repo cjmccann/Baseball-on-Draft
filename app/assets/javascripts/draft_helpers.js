@@ -2,6 +2,7 @@ function changeDisplayedPlayersTable(select) {
     var options = {
         'Cumulative percentile difference': 'availablePlayersCumulative',
         'Absolute percentiles': 'availablePlayersAbsolute',
+        'Distance from league averages': 'availablePlayersDiffFromAverage',
         'Absolute percentiles with positional adjustment': 'availablePlayersAbsolutePos',
         'Absolute percentiles, positional + remaining slot adjustment': 'availablePlayersAbsolutePosSlot',
         '': 'availablePlayersDummy'
@@ -14,7 +15,7 @@ function changeDisplayedPlayersTable(select) {
             type: 'GET',
             url: '/draft_helpers/' + getId() + '/availablePlayersTable',
             data: {
-                tableId: options[select.value]
+                tableId: options[select.value],
             },
             success: function(data) {
                 $('#availablePlayers').append(data);

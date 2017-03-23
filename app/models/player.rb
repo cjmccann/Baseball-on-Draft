@@ -143,7 +143,6 @@ class Player < ActiveRecord::Base
     return percentiles
   end
 
-
   def get_absolute_percentile_sum(target_stats, dynamic_stats)
     sum = 0.0
 
