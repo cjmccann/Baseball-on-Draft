@@ -90,6 +90,29 @@ class Team < ActiveRecord::Base
     return slots
   end
 
+  def get_all_slots_as_empty()
+    slots = { "bat" => [ ], "pit" => [ ] }
+
+    initial_batter_slots.each do |pos, n|
+      while (n > 0)
+        slots["bat"].push( { position: pos, id: nil } )
+
+        n -= 1
+      end
+    end
+
+    initial_pitcher_slots.each do |pos, n|
+      while (n > 0)
+        slots["pit"].push( { position: pos, id: nil } )
+
+        n -= 1
+      end
+    end
+
+    return slots
+   
+  end
+
   def get_average_team_percentiles()
    target_percentiles = get_target_percentiles(self.team_percentiles) 
 

@@ -210,12 +210,20 @@ function scrollHeader(e) {
     thead.scrollLeft = table.scrollLeft;
 }
 
+function setTeamHeaderScrolls() {
+    $('table.team').each(function(index) {
+        elem = $(this);
+
+        elem.on('scroll', scrollTeamHeader);
+    });
+}
+
 function scrollTeamHeader(e) {
     var table = e.currentTarget
     thead = table.getElementsByTagName('thead')[0];
-        
+
     thead.scrollLeft = table.scrollLeft;
-    document.getElementById('myTeamTotals').scrollLeft = table.scrollLeft;
+    $('table#' + table.id + '-totals').get(0).scrollLeft = table.scrollLeft;
 }
 
 
@@ -233,20 +241,25 @@ function getTeamItemList(iconString) {
     return list;
 }
 
-function getOtherTeamList(iconString) {
+function getOtherTeamList() {
+    iconString = 'fa-chevron-right'
     list = { }
 
     $('div.teamName').each(function(index) {
         elem = $(this);
 
-        if (elem.attr('id') != '1') {
+        if (elem.attr('id') != '1' && elem.attr('id') != 'allOtherTeamAvgs') {
             list[elem.attr('id')] = { name: elem.data('team-name'), icon: iconString };
         }
     });
 
-    list['bestHitting'] = { name: 'Current best hitting team', icon: iconString }
-    list['bestPitching'] = { name: 'Current best pitching team', icon: iconString }
-    list['bestOverall'] = { name: 'Current best team overall', icon: iconString }
+    list['sep0'] = '---------';
+
+    calcIconString = 'fa-calculator';
+    list['allOtherTeamAvgs'] = { name: $('div.teamName#allOtherTeamAvgs').data('team-name'), icon: calcIconString }
+    list['bestHitting'] = { name: 'Current best hitting team', icon: calcIconString }
+    list['bestPitching'] = { name: 'Current best pitching team', icon: calcIconString }
+    list['bestOverall'] = { name: 'Current best team overall', icon: calcIconString }
 
     list['sep1'] = '---------';
     list['close'] = { name: 'Close', icon: 'quit' };
@@ -423,7 +436,7 @@ function initContextMenus() {
             }
         },
         callback: handleTeamSwitchAction,
-        items: getOtherTeamList('fa-exchange'),
+        items: getOtherTeamList(),
     });
 }
 
@@ -482,6 +495,7 @@ ready = function() {
     restorePreviousSettings();
 
     changeDisplayedPlayersTable($('select#playersTable').get(0))
+    setTeamHeaderScrolls();
     // document.getElementById('availablePlayersCumulativeTable').addEventListener('scroll', scrollHeader);
 
     $('table#myTeam').on('scroll', scrollTeamHeader);

@@ -1,8 +1,17 @@
 <%= stylesheet_link_tag params[:controller] %>
 <%= javascript_include_tag params[:controller] %>
 
-<% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
-<%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
+<div style="background-color:#e0e0e0;">
+  <% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
+  <%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
+
+  <h2 style="display:inline; position:fixed; top:5px; left:65px; background-color:white; padding-right:15px;">Baseball on Draft</h2>
+</div>
+
+<div style="position:fixed; top:40px; right:10px; font-size:14px;">
+  <%= link_to 'Back to league', league_path %> | 
+  <%= link_to 'Edit League Settings', setting_manager_path %>
+</div>
 
 <div id="draftHelperContainer" style="height: 98vh; width: 100%;" data-settings="<%= @settings.to_json %>">
   <div style="height: 45vh;" id="teams" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
@@ -67,7 +76,3 @@
   </div>
 </div>
 
-<div style="position:fixed; left:20px; bottom:20px;">
-  <%= link_to 'Back to league', league_path %> | 
-  <%= link_to 'Edit League Settings', setting_manager_path %>
-</div>

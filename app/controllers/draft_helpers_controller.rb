@@ -44,7 +44,7 @@ class DraftHelpersController < ApplicationController
 
     if params[:settings]
       @settings = params[:settings] 
-      otherTeamId = @settings[:otherTeamSettings][:id].to_i
+      otherTeamId = @settings[:otherTeamSettings][:id]
     else
       @settings = { }
       otherTeamId = nil
@@ -102,7 +102,7 @@ class DraftHelpersController < ApplicationController
         end
 
         @other_teams.push({ :id => team.id, :name => team.name, :slots_with_players => team.get_slots_with_players, 
-                             :team_percentiles => team.team_percentiles, :team_raw_stats => team.team_raw_stats, :hidden => (otherTeamId != team.id) })
+                             :team_percentiles => team.team_percentiles, :team_raw_stats => team.team_raw_stats, :hidden => (otherTeamId.to_i != team.id) })
       end
     end
 
@@ -125,8 +125,8 @@ class DraftHelpersController < ApplicationController
       end
     end
 
-    @other_teams.push( { :id => 'allOtherTeamAvgs', :name => 'All Other Teams (Avg)', :slots_with_players => { 'bat' => [ ], 'pit' => [ ] },
-                         :team_percentiles => average_team_percentiles, :team_raw_stats => average_team_raw_stats, :hidden => true });
+    @other_teams.push( { :id => 'allOtherTeamAvgs', :name => 'Other Teams (Avg)', :slots_with_players => @draft_helper.league.my_team.get_all_slots_as_empty,
+                         :team_percentiles => average_team_percentiles, :team_raw_stats => average_team_raw_stats, :hidden => (otherTeamId != 'allOtherTeamAvgs') });
 
 
     @sorted_list = { :div_id => 'availablePlayersDummy', :value_label => 'Value', :list => [], :minmax => { } }

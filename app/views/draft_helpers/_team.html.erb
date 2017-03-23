@@ -140,7 +140,7 @@
           <% next if index == 0 || index == 1 || index == 2 %>
 
           <% if !team_percentiles[category].nil? %>
-            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= (team_percentiles[category][:values].reduce(0, :+)).round(3).to_s + "%" %></td>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= ((team_percentiles[category][:values].reduce(0, :+)).round(3).to_s + "%") if !team_percentiles[category][:values].empty? %></td>
           <% else %>
             <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
           <% end %>
@@ -171,7 +171,7 @@
           <% next if index == 0 || index == 1 || index == 2 %>
 
           <% if !team_raw_stats[category].nil? %>
-            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= (team_raw_stats[category][:values].reduce(0, :+)).round(3) %></td>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= ((team_raw_stats[category][:values].reduce(0, :+)).round(3)) if !team_raw_stats[category][:values].empty? %></td>
           <% else %>
             <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
           <% end %>
