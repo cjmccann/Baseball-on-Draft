@@ -13,7 +13,7 @@ class SettingManagersController < ApplicationController
 
   def edit
     @setting_manager = SettingManager.find(params[:id])
-    authorize! :update, @team
+    authorize! :update, @setting_manager
   end
 
   def update
@@ -26,6 +26,8 @@ class SettingManagersController < ApplicationController
     else
       render 'show'
     end
+
+    authorize! :upate, @setting_manager
   end
 
   private

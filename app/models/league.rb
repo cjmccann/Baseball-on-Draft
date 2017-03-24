@@ -6,7 +6,7 @@ class League < ActiveRecord::Base
   has_one :draft_helper, dependent: :destroy
 
   validates :name, presence: true,
-    length: { minimum: 5 }
+    length: { minimum: 2 }
 
   after_create :init_setting_manager
 

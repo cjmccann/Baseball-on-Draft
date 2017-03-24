@@ -189,6 +189,6 @@ class DraftHelpersController < ApplicationController
 
   private
   def draft_helper_params
-    params.require(:draft_helper).permit(:settings, :teamId, :playerId)
+    params.require(:draft_helper).permit(:settings, :teamId, :playerId, :league_id, :tableId)
   end
 end
