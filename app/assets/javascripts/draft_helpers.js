@@ -267,7 +267,7 @@ function getTeamItemList(iconString) {
     });
 
     list['sep1'] = '---------';
-    list['close'] = { name: 'Close', icon: 'quit' };
+    list['close'] = { name: 'Close', icon: 'fa-times' };
 
     return list;
 }
@@ -293,7 +293,7 @@ function getOtherTeamList() {
     list['bestOverall'] = { name: 'Current best team overall', icon: calcIconString }
 
     list['sep1'] = '---------';
-    list['close'] = { name: 'Close', icon: 'quit' };
+    list['close'] = { name: 'Close', icon: 'fa-times' };
 
     return list;
 }
