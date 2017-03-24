@@ -1,5 +1,3 @@
-require 'CSV'
-require 'pry'
 require 'digest'
 
 require_relative 'model_data'
