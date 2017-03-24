@@ -1,7 +1,7 @@
 <%= form_for @setting_manager do |manager_form| %>
 <div id="teamCount" style="float:left; margin: 10px 0 10px 0; width: 100%">
   <h3>Number of Teams</h3>
-  <%= manager_form.select 'num_teams', (1..24).to_a.map(&:to_s), :selected => @setting_manager['num_teams'].to_s %>
+  <%= manager_form.select 'num_teams', (2..24).to_a.map(&:to_s), :selected => @setting_manager['num_teams'].to_s %>
 </div>
 
 <div id="settings" style="float:left; margin:0; width:100%;">
@@ -85,6 +85,6 @@
 </div>
 
 
-<%= manager_form.submit 'Update settings' %> <%= button_tag 'Cancel', :type => 'cancel', :name => 'cancel' %>
+<%= manager_form.submit 'Update settings' %> <%= button_tag 'Cancel', :type => 'cancel', :name => 'cancel', :style => 'padding-bottom:25px;' %>
 <% end %>
 

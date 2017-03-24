@@ -454,7 +454,7 @@ function initContextMenus() {
             }
         },
         callback: handleTeamListAction,
-        items: getTeamItemList('add'),
+        items: getTeamItemList('fa-plus'),
     });
 
     $.contextMenu({
