@@ -1,7 +1,7 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
 
-  validates_uniqueness_of :name, scope: [:league]
+  # validates_uniqueness_of :name, scope: [:league]
 
   def index
     @league = League.find(params[:league_id])
