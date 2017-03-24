@@ -4,8 +4,19 @@
   <% logo_attrs = {  alt: "change team shown", style: "height:125px; background-color:white;" } %>
   <%= image_tag("baseballmug2-flipped.png", logo_attrs ) %>
 
-  <h2 style="display:inline; background-color:white; padding-right:15px;">Baseball on Draft</h2>
+  <div style="display:inline;">
+    <h1 style="background-color:white; padding-right:15px; margin-bottom:0px;">Baseball on Draft</h1>
+    <h3 style="margin-top:0px; font-size:20px; text-align:left">Fantasy Draft-Aid</h3>
+  </div>
 </div>
+
+<% if !user_signed_in? %>
+  <div style="text-align:center">
+    <br>
+    <h3 style="margin-top:15px; margin-bottom:10px;">Follow along with your league's draft.</h2>
+    <h3 style="margin-top:5px;">Add players to teams to get real-time analysis and player recommendations.</h3>
+  </div>
+<% end %>
 
 <br>
 <br>
@@ -29,6 +40,16 @@
 
       <p><%= link_to 'Create new league', new_user_league_path(current_user) %></p>
   <% else %>
-    <h3> Please sign in to see your league data! </h3>
+    <hr>
+    <h2> Please sign in to see your league data! </h2>
+
+    <div>
+      <%= button_to 'Sign Up', new_user_registration_path, { :method => :get, :class => "ui-button ui-widget ui-corner-all" } %>
+      <%= button_to 'Sign In', new_user_session_path, { :method => :get, :class => "ui-button ui-widget ui-corner-all" } %>
+    </div>
   <% end %>
+</div>
+
+<div class="footer">
+  Connor J. McCann
 </div>

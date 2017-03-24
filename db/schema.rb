@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170321073855) do
+ActiveRecord::Schema.define(version: 20170324015146) do
 
   create_table "data_managers", force: :cascade do |t|
     t.integer  "draft_helper_id"
@@ -107,6 +107,7 @@ ActiveRecord::Schema.define(version: 20170321073855) do
     t.boolean  "pit_fip"
     t.boolean  "pit_war"
     t.boolean  "pit_dra"
+    t.integer  "num_teams"
   end
 
   create_table "teams", force: :cascade do |t|

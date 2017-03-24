@@ -1,79 +1,86 @@
 <%= form_for @setting_manager do |manager_form| %>
-<h2>Positional Settings</h2>
-<div id="positionSettings" style="float:left; margin:0; width:100%;">
-  <div id="hitterPositions" style="float:left; margin:20px; width:auto;">
-    <h3>Hitters</h3>
-    <table style="margin:auto;" >
-        <tr>
-          <th>Position</th>
-          <th>Count</th>
-        </tr>
-
-        <% SettingManager.defaults[:batter_positions].keys.each do |position| %>
-          <tr>
-            <td><%= position.split('_')[1] %></td>
-            <td><%= manager_form.select position, 
-              ['0','1', '2', '3', '4', '5', '6', '7'], 
-              :selected => @setting_manager[position].to_s %>
-            </td>
-          </tr>
-        <% end %>
-    </table>
-  </div>
-
-  <div id="pitcherPositions" style="float:left; margin:20px; width:auto">
-    <h3>Pitchers</h3>
-    <table style="margin:auto;">
-        <tr>
-          <th>Position</th>
-          <th>Count</th>
-        </tr>
-
-        <% SettingManager.defaults[:pitcher_positions].keys.each do |position| %>
-          <tr>
-            <td><%= position.split('_')[1] %></td>
-            <td>
-              <%= manager_form.select position, ['0', '1', '2', '3', '4', '5', '6', '7'], 
-              :selected => @setting_manager[position].to_s %>
-            </td>
-          </tr>
-        <% end %>
-    </table>
-  </div>
+<div id="teamCount" style="float:left; margin: 10px; width: 100%">
+  <h3>Number of Teams</h3>
+  <%= manager_form.select 'num_teams', (1..24).to_a.map(&:to_s), :selected => @setting_manager['num_teams'].to_s %>
 </div>
 
-<h2>Category Settings</h2>
-<div id="categorySettings" style="float:left; margin:0; width:100%;">
-  <div id="hitterCategories" style="float:left; margin:20px; width:auto;">
-    <h3>Hitters</h3>
-    <table style="margin:auto;">
-        <tr>
-          <th>Category</th>
-        </tr>
-
-        <% SettingManager.defaults[:batter_stats].keys.each do |category| %>
+<div id="settings" style="float:left; margin:0; width:100%;">
+  <div id="positionSettings" style="float:left; margin:0;">
+  <h2>Positional Settings</h2>
+    <div id="hitterPositions" style="float:left; margin:20px; width:auto;">
+      <h3>Hitters</h3>
+      <table style="margin:auto;" >
           <tr>
-            <td><%= category.split('_')[1] %></td>
-            <td><%= manager_form.check_box category, { checked: @setting_manager[category] }, 'true', 'false' %></td>
+            <th>Position</th>
+            <th>Count</th>
           </tr>
-        <% end %>
-    </table>
+
+          <% SettingManager.defaults[:batter_positions].keys.each do |position| %>
+            <tr>
+              <td><%= position.split('_')[1] %></td>
+              <td><%= manager_form.select position, 
+                ['0','1', '2', '3', '4', '5', '6', '7'], 
+                :selected => @setting_manager[position].to_s %>
+              </td>
+            </tr>
+          <% end %>
+      </table>
+    </div>
+
+    <div id="pitcherPositions" style="float:left; margin:20px; width:auto">
+      <h3>Pitchers</h3>
+      <table style="margin:auto;">
+          <tr>
+            <th>Position</th>
+            <th>Count</th>
+          </tr>
+
+          <% SettingManager.defaults[:pitcher_positions].keys.each do |position| %>
+            <tr>
+              <td><%= position.split('_')[1] %></td>
+              <td>
+                <%= manager_form.select position, ['0', '1', '2', '3', '4', '5', '6', '7'], 
+                :selected => @setting_manager[position].to_s %>
+              </td>
+            </tr>
+          <% end %>
+      </table>
+    </div>
   </div>
 
-  <div id="picherCategories" style="float:left; margin:20px; width:auto;">
-    <h3>Pitchers</h3>
-    <table style="margin:auto;">
-        <tr>
-          <th>Category</th>
-        </tr>
-
-        <% SettingManager.defaults[:pitcher_stats].keys.each do |category| %>
+  <div id="categorySettings" style="float:left; margin:0;">
+    <h2>Category Settings</h2>
+    <div id="hitterCategories" style="float:left; margin:20px; width:auto;">
+      <h3>Hitters</h3>
+      <table style="margin:auto;">
           <tr>
-            <td><%= category.split('_')[1] %></td>
-            <td><%= manager_form.check_box category, { checked: @setting_manager[category] }, 'true', 'false' %></td>
+            <th>Category</th>
           </tr>
-        <% end %>
-    </table>
+
+          <% SettingManager.defaults[:batter_stats].keys.each do |category| %>
+            <tr>
+              <td><%= category.split('_')[1] %></td>
+              <td><%= manager_form.check_box category, { checked: @setting_manager[category] }, 'true', 'false' %></td>
+            </tr>
+          <% end %>
+      </table>
+    </div>
+
+    <div id="picherCategories" style="float:left; margin:20px; width:auto;">
+      <h3>Pitchers</h3>
+      <table style="margin:auto;">
+          <tr>
+            <th>Category</th>
+          </tr>
+
+          <% SettingManager.defaults[:pitcher_stats].keys.each do |category| %>
+            <tr>
+              <td><%= category.split('_')[1] %></td>
+              <td><%= manager_form.check_box category, { checked: @setting_manager[category] }, 'true', 'false' %></td>
+            </tr>
+          <% end %>
+      </table>
+    </div>
   </div>
 </div>
 

@@ -1,3 +1,6 @@
+<%= javascript_include_tag "http://cdn.jsdelivr.net/qtip2/3.0.3/basic/jquery.qtip.min.js" %>
+<link href="http://cdn.jsdelivr.net/qtip2/3.0.3/basic/jquery.qtip.min.css" rel="stylesheet">
+
 <%= stylesheet_link_tag params[:controller] %>
 <%= javascript_include_tag params[:controller] %>
 
@@ -9,11 +12,11 @@
 </div>
 
 <div style="position:fixed; top:40px; right:10px; font-size:14px;">
-  <%= link_to 'Back to league', league_path %> | 
-  <%= link_to 'Edit League Settings', setting_manager_path %>
+  <%= link_to 'Back to league', league_path(@draft_helper.league) %> | 
+  <%= link_to 'Edit League Settings', setting_manager_path(@draft_helper.league.setting_manager) %>
 </div>
 
-<div id="draftHelperContainer" style="height: 98vh; width: 100%;" data-settings="<%= @settings.to_json %>">
+<div id="draftHelperContainer" style="height: 98vh; width: 100%;" data-settings="<%= @settings.to_json %>" data-pos-adjustments="<%= @draft_helper.data_manager.positional_adjustments.to_json %>">
   <div style="height: 45vh;" id="teams" data-params-id=<%= params[:id] if params.has_key?(:id) %>>
 
     <div class="team" id="myTeam">
@@ -46,8 +49,9 @@
     <div id="availablePlayersControls" style="height: 10%; float:left; width:100%; text-align:center;">
 
       <div style="width:100%; margin-bottom:5px;">
+        <%= fa_icon 'question-circle-o', class: 'showHelp', style: 'font-size:18px;'  %>
         <label style="margin: 0 10px;">Sort by: </label>
-        <% options = ['Cumulative percentile difference', 'Distance from league averages', 'Absolute percentiles', 'Absolute percentiles with positional adjustment'] %>
+        <% options = ['Cumulative percentile difference', 'Absolute percentiles', 'Absolute percentiles with positional adjustment',  'Distance from league averages'] %>
         <% # removed input option: "Absolute percentiles, positional + remaining slot adjustment" %>
         <%= select_tag "playersTable", options_for_select(options, 'Cumulative percentile difference'), :onchange => 'changeDisplayedPlayersTable(this)', :style => 'margin-right: 20px;' %>
       </div>

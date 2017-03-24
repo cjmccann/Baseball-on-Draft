@@ -10,6 +10,10 @@ Rails.application.routes.draw do
     resources :setting_managers
     resources :teams
     resources :draft_helpers
+
+    member do
+      post 'changeTeamName'
+    end
   end
 
   resources :teams, shallow: true do

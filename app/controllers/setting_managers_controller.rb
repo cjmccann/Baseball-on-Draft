@@ -19,6 +19,8 @@ class SettingManagersController < ApplicationController
   def update
     @setting_manager = SettingManager.find(params[:id])
 
+    @setting_manager.create_teams(params[:setting_manager]['num_teams'].to_i)
+
     if @setting_manager.update(setting_manager_params)
       redirect_to @setting_manager.league
     else
@@ -29,7 +31,7 @@ class SettingManagersController < ApplicationController
   private
 
   def setting_manager_params 
-    params.require(:setting_manager).permit(SettingManager.defaults[:batter_positions].keys,
+    params.require(:setting_manager).permit('num_teams', SettingManager.defaults[:batter_positions].keys,
                                             SettingManager.defaults[:pitcher_positions].keys,
                                             SettingManager.defaults[:batter_stats].keys,
                                             SettingManager.defaults[:pitcher_stats].keys)

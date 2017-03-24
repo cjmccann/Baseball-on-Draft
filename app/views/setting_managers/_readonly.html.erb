@@ -46,5 +46,10 @@
         <% end %>
     </table>
   </div>
+
+  <div style="width:100%; display:inline-block; width:100%">
+    <%= button_to 'Change settings', setting_manager_path(@setting_manager), { :method => :get, :class => "ui-button ui-widget ui-corner-all",
+                                                                               :style => "margin-bottom:25px; margin-left:20px; display: inline-block; font-size: 16px; font-family:'Montserrat', sans-serif;" } %>
+  </div>
 </div>
-<%= button_to 'Change settings', setting_manager_path(@setting_manager), { :method => :get } %>
+

@@ -6,6 +6,31 @@ img.removePlayer, img.addPlayer, .otherTeamHeader {
     cursor:pointer;
 }
 
+.tooltiptext {
+    display:none;
+}
+
+ul {
+    margin-left:10px;
+}
+ul ul {
+    margine-left:15px;
+}
+
+.showHelp {
+    font-size:14px;
+}
+
+.qtip-title {
+    font-size:16px;
+    font-weight:bold;
+}
+
+.qtip {
+    max-width: 550px !important;
+    line-height:115%;
+}
+
 table {
     font-size:12px;
 }

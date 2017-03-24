@@ -1,6 +1,5 @@
 class SettingManager < ActiveRecord::Base
   before_create :set_default_values
-  after_create :create_first_team
 
   belongs_to :league
   belongs_to :user
@@ -8,6 +7,7 @@ class SettingManager < ActiveRecord::Base
   mattr_accessor :defaults
 
   self.defaults = { 
+    "num_teams" => 12,
     :batter_positions => {
       "bat_C" => 2,
       "bat_1B" => 1,
@@ -105,6 +105,34 @@ class SettingManager < ActiveRecord::Base
     convert_positions_to_hash
   end
 
+  def create_teams(n)
+    if (self.league.teams.length == 0)
+      team = self.league.teams.build( { :name => 'My Team', :league => self.league, :user => self.league.user } )
+      team.save
+    end
+
+    if (self.league.teams.length < n) && (n <= 24)
+      names = get_filler_team_names(n)
+      index = 0
+
+      while self.league.teams.length < n
+        team = self.league.teams.build( { :name => names[index], :league => self.league, :user => self.league.user } )
+        team.save
+        index += 1
+      end
+    elsif (self.league.teams.length > n) && (n >= 1) && (n <= 24)
+      n_to_delete = self.league.teams.length - n
+
+      while (n_to_delete > 0)
+        to_delete = self.league.teams.last
+
+        self.league.teams.delete(Team.find(to_delete.id))
+
+        n_to_delete -= 1
+      end
+    end
+  end
+
   private
   def set_default_values
     self.defaults[:batter_positions].each do |position, count|
@@ -122,10 +150,21 @@ class SettingManager < ActiveRecord::Base
     self.defaults[:pitcher_stats].each do |category, bool|
       self[category] = bool
     end
+
+    self['num_teams'] = 12
   end
 
-  def create_first_team
-    team = self.league.teams.build( { :name => 'My Team', :league => self.league, :user => self.league.user } )
-    team.save
+  def get_filler_team_names(n)
+    names = ['John', 'Phil', 'Matt', 'Kyle', 'Keenan', 'Foo', 'Bar', 'Baz', 'Mr. Anderson', 'Gately', 'Schacht', 'Pemulis',
+             'Rebecca', 'Carol', 'Pepe Silvia', 'Jane', 'Gayle', 'Margot', 'Alina', 'Elaine', 'Black Dynamite', 'Kershaw', 'Noah',
+             'Thor', 'Rich', 'Corey', 'Charlie', 'Mac', 'Dennis', 'Dee', 'Frank', 'Cricket', 'Rick', 'Morty', 'Beth', 'Birdperson', 'The Waitress',
+             'Summer', 'Jerry', 'Tami', 'Bryce', 'Kirk', 'Joey', 'Jonathan', 'Chris', 'Brian', 'Warren', 'Sam', 'Steve', 'Stringer', 'Avon', 'Country Mac',
+             'Deloris', 'Bernard', 'The Bluths', 'Reynolds Family', 'Fiendish Dr. Wu', 'Potato', 'Dingus', 'McCringleberry', 'God', 'The McPoyles',
+             'Smoochie-Wallace', 'Moizoos', 'Quatro', 'Duprix', 'Jeremiah', 'Dr. Brule', 'Mellow Mike', 'Lady Godiva', 'Brotendo', 'Bill Ponderosa',
+             'Meatwad', 'Shake', 'Frylock', 'Jumbo', 'Barnum', 'West', "John's awful team", "John's terrible team", "John's worst team", "John's last-place team",
+             'Mr. Pickles', 'Dr. Weird', 'George Washington', 'A friendly ghost', 'The boy wonder', 'David Blaine', 'mlgN0sc0p3', 'Ron Burgundy', 'Champ Kind',
+             'Brick Tamlin', 'Last Place', 'Dr. Mantis Toboggan', 'Nathan for You', 'Scott Clam', 'Your Mom', 'Brangadang', 'Atlas', 'Ortho Stice', 'DMZ' ]
+
+    names.sample(n)
   end
 end

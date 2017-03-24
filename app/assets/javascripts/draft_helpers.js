@@ -95,10 +95,37 @@ function setTableVisibility(options, newVal) {
         if (key == newVal) {
             // don't check for lenght, because we assume this is ALWAYS loaded
             $('#' + options[key]).show();
+            $('.showHelp').qtip('option', 'content.title', (getTooltips()[options[key]]['title']));
+            $('.showHelp').qtip('option', 'content.text', (getTooltips()[options[key]]['text']));
         } else {
             if ($('#' + options[key]).length) {
                 $('#' + options[key]).hide();
             }
+        }
+    }
+}
+
+function getTooltips() {
+    return {
+        'availablePlayersCumulative' : {
+            'title': 'Cumulative Percentile Difference',
+            'text': 'This metric calculates team-percentiles for each of your league\'s categories if each available player were added to your team, and gets the sum of all the percentile-differences. The player list is sorted by this sum. See example below. <ul><li>Given a league with Hitting Categories: [RBI, HR]</li><li>Given Anthony Rizzo is undrafted</li><hr><li>My team\'s current overall RBI percentile: 80%</li><li>My team\'s RBI percentile if Anthony Rizzo were added: 85%</li><li>Percentile diff for RBI with Rizzo: (85% - 80%) = +5%</li><hr><li>My team\'s current overall HR percentile: 70%</li><li>HR percentile if Anthony Rizzo were added: 80%</li><li>Percentile diff for HR with Rizzo: (80% - 70%) = +10%</li><hr><li>Cumulative percentile difference for R and HR: (5% + 10%) = +15%</li></ul>'
+        },
+        'availablePlayersAbsolute' : {
+            'title': 'Absolute Percentiles',
+            'text': "This metric sums all of each player's percentiles for your league's target categories. The list is sorted by this sum. See example below. <ul><li>Mookie Betts' percentiles:</li><ul><li>R: 90%</li><li>HR: 80%</li><li>OBP: 95%</li></ul><li>Mookie Betts' Absolute Percentile Sum = (90 + 80 + 95) = 265%</li></ul>"
+        },
+        'availablePlayersAbsolutePos' : {
+            'title': 'Absolute percentiles with positional adjustment',
+            'text': "This metric sums absolute percentiles, as described in the Tooltip for 'Absolute Percentiles' table, but multiplies the sums by a positional weight factor. <hr> The weight factor is determined by getting the Standard Deviation among the top 10 best players for each position (30 for SP), with the assumption that the larger the standard deviation among the best 10 players, the bigger difference there is between the best player for that position, and the 10th best player. <hr> E.g. (Players picked just to demonstrate.) The best shortstop (Carlos Correa) is a LOT better than the 10th best shortstop (Addison Russell), but the difference between the best OF (Mookie Betts) and the 10th best OF (Kyle Schwarber) is not as large. <hr> Next, we take the average standard deviation for all batter positions, and the average standard deviation for all pitcher postitions, and get the proportion of each position's STDDEV to the average of its type. <hr>(STDDEV among top 10 shortstops) /  (STDDEV average for all batter positions) = POSITIONAL_WEIGHT.<hr> Current positional weights are as follows (bigger = position is weighted more): " + JSON.stringify($('#draftHelperContainer').data('pos-adjustments'), null, 2),
+        },
+        'availablePlayersDiffFromAverage' : {
+            'title': 'Distance from league averages',
+            'text': 'This metric gets the distance each player is away from the league average percentile, per category. The table is sorted by the average of these distances. <ul><li>Given league pitching categories: [ERA, SO]</li><hr><li>League average percentile for ERA: 80%</li><li>Clayton Kershaw percentile for ERA: 95%</li><li>Clayton Kershaw distance from league average for ERA: (95% - 80%) = 15%</li><hr><li>League average percentile for SO: 75%</li><li>Clayton Kershaw percentile for SO: 95%</li><li>Clayton Kershaw distance from league average for SO: (95% - 75%) = 20%</li><hr><li>Average distance from league average = (15% + 20%) / 2 = 17.5%</li></ul>',
+        },
+        'availablePlayersAbsolutePosSlot' : {
+            'title': '',
+            'text': '',
         }
     }
 }
@@ -234,7 +261,9 @@ function getTeamItemList(iconString) {
 
     $('div.teamName').each(function(index) {
         elem = $(this);
-        list[elem.attr('id')] = { name: elem.data('team-name'), icon: iconString };
+        if (elem.data('team-name') != 'Other Teams (Avg)') {
+            list[elem.attr('id')] = { name: elem.data('team-name'), icon: iconString };
+        }
     });
 
     list['sep1'] = '---------';
@@ -250,7 +279,7 @@ function getOtherTeamList() {
     $('div.teamName').each(function(index) {
         elem = $(this);
 
-        if (elem.attr('id') != '1' && elem.attr('id') != 'allOtherTeamAvgs') {
+        if (elem.data('team-name') != 'My Team' && elem.attr('id') != 'allOtherTeamAvgs') {
             list[elem.attr('id')] = { name: elem.data('team-name'), icon: iconString };
         }
     });
@@ -505,6 +534,16 @@ ready = function() {
         $('tr.team').hover(showRemovePlayerButton, hideRemovePlayerButton);
 
         initContextMenus();
+
+        $('.showHelp').qtip( {
+            content: {
+                text: 'Placeholder Tooltip',
+                text: 'Placeholder Title',
+            },
+            style: {
+                classes: 'showHelp'
+            },
+        });
     }
 }
 

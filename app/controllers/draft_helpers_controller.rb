@@ -56,9 +56,9 @@ class DraftHelpersController < ApplicationController
 
     @other_teams = [ ]
 
-    @best_hitting_team = { :id => 0, :avg_percentile => 0 }
-    @best_pitching_team = { :id => 0, :avg_percentile => 0 }
-    @best_overall_team = { :id => 0, :avg_percentile => 0 }
+    @best_hitting_team = { :id => 0, :avg_percentile => -1 }
+    @best_pitching_team = { :id => 0, :avg_percentile => -1 }
+    @best_overall_team = { :id => 0, :avg_percentile => -1 }
     team_percentile_values = { :bat => { }, :pit => { } }
     team_raw_values = { :bat => { }, :pit => { } }
 

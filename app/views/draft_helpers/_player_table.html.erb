@@ -7,69 +7,76 @@
   <% add_player_cell_width = "25px" %>
 
   <div class="availablePlayersContainer" id=<%= @sorted_list[:div_id] %> style="<%= "margin-top: 10px; " + (@is_first_table ? "" : "display:none;") %>">
-      <table class="availablePlayers" id="<%= @sorted_list[:div_id] + "Table" %>">
-        <thead class="availablePlayers">
-          <tr>
-            <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"></td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
-            <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;">Pos</td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= @sorted_list[:value_label] %></td>
-            <% category_order = [ { }, { }, { } ] %>
-            <% stats_categories.each do |type, categories| %>
-              <% categories.each do |category| %>
-                <% category_order.push({ :player_type => type.to_s, :category => category }) %>
-                <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= category %></td>
-              <% end %>
-            <% end %>
-          </tr>
-        </thead>
-
-        <tbody>
-        <% @sorted_list[:list].each_with_index do |player, index| %>
-          <% break if index > 400 %>
-
-          <% player[:position].nil? ? position = '' : position = player[:position] %>
-          <tr class="<%= "player percentile " + position %>" data-player-id="<%= player[:id] %>">
-            <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>">
-              <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
-              <%= image_tag("plus.png", add_player_image_attrs ) %>
-            </td>
-            <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
-            <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
-            <% category_order.each_with_index do |data, index_b| %>
-              <% next if index_b == 0 || index_b == 1 || index_b == 2 %>
-
-              <% if player[:player_type] == data[:player_type] %>
-                <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
-                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].to_s + "%" %></td>
-              <% else %>
-                <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
-              <% end %>
-            <% end %>
-          </tr>
-
-          <tr style="display:none;" class="<%= "player raw " + position %>" data-player-id="<% player[:id] %>">
-            <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>">
-              <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
-              <%= image_tag("plus.png", add_player_image_attrs ) %>
-            </td>
-            <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
-            <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
-            <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
-            <% category_order.each_with_index do |data, index_c| %>
-              <% next if index_c == 0 || index_c == 1 || index_c == 2 %>
-
-              <% if player[:player_type] == data[:player_type] %>
-                <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
-                <% player[:means][data[:category]] = 0 if player[:means][data[:category]].nil? %>
-                <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]] %></td>
-              <% else %>
-                <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
-              <% end %>
-            <% end %>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+    <div class='tooltiptext'>
+      <% if @sorted_list[:div_id] == "availablePlayersCumulative" %>
+        This is tooltiptext
+      <% elsif @sorted_list[:div_id] == "availablePlayersDiffFromAverage"  %>
+        This is other
+      <% end %>
     </div>
+    <table class="availablePlayers" id="<%= @sorted_list[:div_id] + "Table" %>">
+      <thead class="availablePlayers">
+        <tr>
+          <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"></td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
+          <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;">Pos</td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= @sorted_list[:value_label] %></td>
+          <% category_order = [ { }, { }, { } ] %>
+          <% stats_categories.each do |type, categories| %>
+            <% categories.each do |category| %>
+              <% category_order.push({ :player_type => type.to_s, :category => category }) %>
+              <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= category %></td>
+            <% end %>
+          <% end %>
+        </tr>
+      </thead>
+
+      <tbody>
+      <% @sorted_list[:list].each_with_index do |player, index| %>
+        <% break if index > 400 %>
+
+        <% player[:position].nil? ? position = '' : position = player[:position] %>
+        <tr class="<%= "player percentile " + position %>" data-player-id="<%= player[:id] %>">
+          <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>">
+            <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
+            <%= image_tag("plus.png", add_player_image_attrs ) %>
+          </td>
+          <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+          <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
+          <% category_order.each_with_index do |data, index_b| %>
+            <% next if index_b == 0 || index_b == 1 || index_b == 2 %>
+
+            <% if player[:player_type] == data[:player_type] %>
+              <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
+              <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].to_s + "%" %></td>
+            <% else %>
+              <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+            <% end %>
+          <% end %>
+        </tr>
+
+        <tr style="display:none;" class="<%= "player raw " + position %>" data-player-id="<% player[:id] %>">
+          <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>">
+            <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
+            <%= image_tag("plus.png", add_player_image_attrs ) %>
+          </td>
+          <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
+          <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
+          <% category_order.each_with_index do |data, index_c| %>
+            <% next if index_c == 0 || index_c == 1 || index_c == 2 %>
+
+            <% if player[:player_type] == data[:player_type] %>
+              <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
+              <% player[:means][data[:category]] = 0 if player[:means][data[:category]].nil? %>
+              <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:means][data[:category]] %></td>
+            <% else %>
+              <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
+            <% end %>
+          <% end %>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>

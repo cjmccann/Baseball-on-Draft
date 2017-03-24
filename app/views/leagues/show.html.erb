@@ -1,4 +1,5 @@
 <%= stylesheet_link_tag params[:controller] %>
+<%= javascript_include_tag params[:controller] %>
 
 <div style="background-color:#e0e0e0;">
   <% logo_attrs = {  alt: "change team shown", style: "position:fixed; top:5px; left:5px; height:60px; background-color:white;" } %>
@@ -8,11 +9,10 @@
 </div>
 
 <div style="position:fixed; top:40px; right:10px; font-size:14px;">
-  <%= link_to 'Back to League List', root_path %> | 
-  <%= link_to 'Edit League Settings', setting_manager_path %>
+  <%= link_to 'Back to League List', root_path %>
 </div>
 
-<div style="text-align: center;">
+<div style="text-align: center;" class="league" data-league-id="<%= @league.id %>">
   <p>
   <h2>League: <%= @league.name %></h2>
   <%= button_to 'Edit League Settings', setting_manager_path, { :method => :get, :class => "ui-button ui-widget ui-corner-all", :style => "display: inline-block" } %>
@@ -22,13 +22,13 @@
   <h2>Current Teams</h2>
   <table style="table-align:center; margin:0 auto;">
       <% @league.teams.each do |team| %>
-          <tr>
-              <td><%= team.name %></td>
+        <tr data-team-id="<%= team.id %>">
+              <td class="teamName"><%= team.name %></td>
               <% if team.name != "My Team" %>
-                <td><%= link_to 'Edit Name', edit_team_path(team) %></td>
-              <td><%= link_to 'Delete', team_path(team),
-                  method: :delete,
-                  data: { confirm: 'Are you sure?' } %></td>
+                <td><a class="editName" href="">Edit Name</a></td>
+                <td><%= link_to 'Delete', team_path(team),
+                    method: :delete,
+                    data: { confirm: 'Are you sure?' } %></td>
               <% else %>
                 <td></td>
                 <td></td>
@@ -37,11 +37,8 @@
       <% end %>
   </table>
 
-  <br>
-  <%= button_to 'Add new team', new_league_team_path(@league), { :method => :get, :class => "ui-button ui-widget ui-corner-all" } =%>
-  <br>
 
-  <h3>(Add teams to match your league's users!)</h3>
+  <h3>(Rename teams to match your league's users!)</h3>
 
   <br>
   <br>
@@ -50,7 +47,6 @@
     <% if @league.draft_helper.nil? %>
       <%= button_to 'Generate Draft Helper!', new_league_draft_helper_path(@league), 
         { :method => :get, :class => "ui-button ui-widget ui-corner-all", :style => "display: inline-block; font-size: 30px;" } %>
-      <h3>This will take about 20 seconds.</h3>
       <h3>League settings and teams can be modified afterwards.</h3>
     <% else %>
       <%= button_to 'View Draft Helper', draft_helper_path(@league.draft_helper), 

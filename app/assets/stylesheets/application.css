@@ -31,3 +31,10 @@ html * {
     font-weight: 400;
 }
 
+.footer {
+    padding-top:10px;
+    position:fixed;
+    background-color: #e0e0e0;
+    bottom:5px;
+    width:100%;
+}

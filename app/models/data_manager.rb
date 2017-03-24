@@ -553,11 +553,11 @@ class DataManager < ActiveRecord::Base
     avg_pitcher_volatility = volatilities[:pit].values.reduce(0, :+) / volatilities[:pit].length
 
     volatilities[:bat].each do |pos, value|
-      self.positional_adjustments[pos] = (value / avg_batter_volatility)
+      self.positional_adjustments[pos] = (value / avg_batter_volatility).round(3)
     end
 
     volatilities[:pit].each do |pos, value|
-      self.positional_adjustments[pos] = (value / avg_pitcher_volatility)
+      self.positional_adjustments[pos] = (value / avg_pitcher_volatility).round(3)
     end
   end
 
