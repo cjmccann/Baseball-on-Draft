@@ -19,13 +19,13 @@ class SettingManagersController < ApplicationController
   def update
     @setting_manager = SettingManager.find(params[:id])
 
-    @setting_manager.create_teams(params[:setting_manager]['num_teams'].to_i)
-
     if @setting_manager.update(setting_manager_params)
       redirect_to @setting_manager.league
     else
       render 'show'
     end
+
+    @setting_manager.create_teams(params[:setting_manager]['num_teams'].to_i)
 
     authorize! :upate, @setting_manager
   end

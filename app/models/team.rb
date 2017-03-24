@@ -402,7 +402,7 @@ class Team < ActiveRecord::Base
   end
 
   def get_available_batter_slot(pos)
-    return pos if self.batter_slots[pos] > 0
+    return pos if (!self.batter_slots[pos].nil? && self.batter_slots[pos] > 0)
 
     if pos == "1B" || pos == "3B"
       return "CI" if self.batter_slots["CI"] > 0
@@ -424,10 +424,10 @@ class Team < ActiveRecord::Base
   end
 
   def get_available_pitcher_slot(pos)
-    return pos if self.pitcher_slots[pos] > 0
-
-    if pos == "SP" || pos == "RP"
-      return "P" if self.pitcher_slots["P"] > 0
+    if (!self.pitcher_slots[pos].nil? && self.pitcher_slots[pos] > 0)
+      return pos
+    elsif self.pitcher_slots["P"] > 0
+      return "P"
     end
 
     return nil
