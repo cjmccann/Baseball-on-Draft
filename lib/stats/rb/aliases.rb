@@ -1,4 +1,5 @@
 require 'set'
+require 'csv'
 
 class Aliases 
   # TODO: Convert all this to JSON instead of csv. csv bad.
