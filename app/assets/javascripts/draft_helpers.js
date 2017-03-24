@@ -543,6 +543,9 @@ ready = function() {
             style: {
                 classes: 'showHelp'
             },
+            hide: {
+                delay:400
+            }
         });
     }
 }

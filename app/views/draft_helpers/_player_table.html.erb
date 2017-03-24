@@ -18,6 +18,7 @@
       <thead class="availablePlayers">
         <tr>
           <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"></td>
+          <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"></td>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;">Name</td>
           <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;">Pos</td>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= @sorted_list[:value_label] %></td>
@@ -41,6 +42,7 @@
             <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
             <%= image_tag("plus.png", add_player_image_attrs ) %>
           </td>
+          <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"><%=(index+1)%></td>
           <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
           <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
@@ -61,6 +63,7 @@
             <% add_player_image_attrs = { :'data-player-id' => player[:id], alt: "add player", style: "max-width:100%;", class:"addPlayer" } %>
             <%= image_tag("plus.png", add_player_image_attrs ) %>
           </td>
+          <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"><%=(index+1)%></td>
           <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
           <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
