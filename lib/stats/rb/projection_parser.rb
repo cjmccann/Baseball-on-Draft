@@ -35,6 +35,7 @@ class ProjectionParser
       @pitchers = convert_json_to_players(JSON.parse(File.read(@pitchers_path)))
     end
 
+=begin
     FileData.files.each do |filename, props|
       filename = File.expand_path(File.dirname(__FILE__) + '/../' + filename)
 
@@ -48,6 +49,7 @@ class ProjectionParser
         read_csv(filename, props[:model], props[:type])
       end
     end
+=end
 
     # clean_player_lists()
     assign_all_pitcher_pos(@pitchers)
