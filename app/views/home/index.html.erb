@@ -15,7 +15,12 @@
     <br>
     <h3 style="margin-top:15px; margin-bottom:10px;">Follow along with your league's draft.</h2>
     <h3 style="margin-top:5px;">Add players to teams to get real-time analysis and player recommendations.</h3>
+
+    <br>
+    <% logo_attrs = {  alt: "draft helper example", style: "border:solid #000; border-width:2px; border-color:black; padding-bottom:20px;" } %>
+    <%= image_tag("example2.png", logo_attrs ) %>
   </div>
+
 <% end %>
 
 <br>
@@ -50,5 +55,6 @@
       <%= button_to 'Sign Up', new_user_registration_path, { :method => :get, :class => "ui-button ui-widget ui-corner-all" } %>
       <%= button_to 'Sign In', new_user_session_path, { :method => :get, :class => "ui-button ui-widget ui-corner-all" } %>
     </div>
+
   <% end %>
 </div>
