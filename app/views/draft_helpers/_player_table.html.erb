@@ -2,7 +2,7 @@
   <% num_categories = 2 + stats_categories[:bat].length + stats_categories[:pit].length %>
   <% static_cell_width = "105px" %>
   <% # category_cell_width = (((1200-210) * 0.94) / num_categories).round.to_s + "px" %>
-  <% category_cell_width = "80px" %>
+  <% category_cell_width = "70px" %>
   <% position_cell_width = "30px" %>
   <% add_player_cell_width = "25px" %>
 
@@ -45,13 +45,13 @@
           <td style="width: <%= add_player_cell_width %>; min-width: <%= add_player_cell_width %>; max-width: <%= add_player_cell_width %>"><%=(index+1)%></td>
           <td class="playerName" style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:name] %></td>
           <td style="width: <%= position_cell_width %>; min-width: <%= position_cell_width %>;"><%= player[:position] %></td>
-          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value] %></td>
+          <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"><%= player[:value].round(2) %></td>
           <% category_order.each_with_index do |data, index_b| %>
             <% next if index_b == 0 || index_b == 1 || index_b == 2 %>
 
             <% if player[:player_type] == data[:player_type] %>
               <% td_class = @draft_helper.get_color_class(player[:categories][data[:category]], @sorted_list[:minmax]) %>
-              <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].to_s + "%" %></td>
+              <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player[:categories][data[:category]].round(2).to_s + "%" %></td>
             <% else %>
               <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
             <% end %>

@@ -34,6 +34,7 @@ class SettingManager < ActiveRecord::Base
       "bat_sb" => true,
       "bat_obp" => true,
       "bat_slg" => true,
+      "bat_ops" => false,
       "bat_doubles" => false,
       "bat_bb" => false,
       "bat_so" => false,
@@ -50,6 +51,7 @@ class SettingManager < ActiveRecord::Base
       "pit_gs" => false,
       "pit_w" => false,
       "pit_l" => false,
+      "pit_hld" => false,
       "pit_h" => false,
       "pit_bb" => false,
       "pit_kper9" => false,
@@ -156,14 +158,15 @@ class SettingManager < ActiveRecord::Base
 
   def get_filler_team_names(n)
     names = ['John', 'Phil', 'Matt', 'Kyle', 'Keenan', 'Foo', 'Bar', 'Baz', 'Mr. Anderson', 'Gately', 'Schacht', 'Pemulis',
-             'Rebecca', 'Carol', 'Pepe Silvia', 'Jane', 'Gayle', 'Margot', 'Alina', 'Elaine', 'Black Dynamite', 'Kershaw', 'Noah',
+             'Rebecca', 'Carol', 'Pepe Silvia', 'Jane', 'Margot', 'Alina', 'Elaine', 'Black Dynamite', 'Kershaw', 'Noah',
              'Thor', 'Rich', 'Corey', 'Charlie', 'Mac', 'Dennis', 'Dee', 'Frank', 'Cricket', 'Rick', 'Morty', 'Beth', 'Birdperson', 'The Waitress',
              'Summer', 'Jerry', 'Tami', 'Bryce', 'Kirk', 'Joey', 'Jonathan', 'Chris', 'Brian', 'Warren', 'Sam', 'Steve', 'Stringer', 'Avon', 'Country Mac',
              'Deloris', 'Bernard', 'The Bluths', 'Reynolds Family', 'Fiendish Dr. Wu', 'Potato', 'Dingus', 'McCringleberry', 'God', 'The McPoyles',
              'Smoochie-Wallace', 'Moizoos', 'Quatro', 'Duprix', 'Jeremiah', 'Dr. Brule', 'Mellow Mike', 'Lady Godiva', 'Brotendo', 'Bill Ponderosa',
              'Meatwad', 'Shake', 'Frylock', 'Jumbo', 'Barnum', 'West', "John's awful team", "John's terrible team", "John's worst team", "John's last-place team",
              'Mr. Pickles', 'Dr. Weird', 'George Washington', 'A friendly ghost', 'The boy wonder', 'David Blaine', 'mlgN0sc0p3', 'Ron Burgundy', 'Champ Kind',
-             'Brick Tamlin', 'Last Place', 'Dr. Mantis Toboggan', 'Nathan for You', 'Scott Clam', 'Your Mom', 'Brangadang', 'Atlas', 'Ortho Stice', 'DMZ' ]
+             'Brick Tamlin', 'Last Place', 'Dr. Mantis Toboggan', 'Nathan for You', 'Scott Clam', 'Your Mom', 'Brangadang', 'Atlas', 'Ortho Stice', 'DMZ', 
+             'Celery Man', 'Flargunnstow', 'Hat Wobble', 'Tayne', 'Simple Simon' ]
 
     names.sample(n)
   end

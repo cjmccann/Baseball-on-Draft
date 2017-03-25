@@ -72,7 +72,7 @@
 
             <% player_percentiles[category].nil? ? player_percentile = 0.0 : player_percentile = player_percentiles[category] %>
             <% td_class = @draft_helper.get_color_class(player_percentile, minmax) %>
-            <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player_percentile.round(3).to_s + "%" %></td>
+            <td class=<%= td_class %> style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= player_percentile.round(2).to_s + "%" %></td>
           <% end %>
         <% else %>
           <td style="width: <%= static_cell_width %>; min-width: <%= static_cell_width %>;"></td>
@@ -126,7 +126,7 @@
           <% next if index == 0 || index == 1 || index == 2 %>
 
           <% if !team_percentiles[category].nil? %>
-            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"> <%= team_percentiles[category][:avg_percentile].round(3).to_s + "%" %> </td>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"> <%= team_percentiles[category][:avg_percentile].round(2).to_s + "%" %> </td>
           <% else %>
             <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
           <% end %>
@@ -140,7 +140,7 @@
           <% next if index == 0 || index == 1 || index == 2 %>
 
           <% if !team_percentiles[category].nil? %>
-            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= ((team_percentiles[category][:values].reduce(0, :+)).round(3).to_s + "%") if !team_percentiles[category][:values].empty? %></td>
+            <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"><%= ((team_percentiles[category][:values].reduce(0, :+)).round(2).to_s + "%") if !team_percentiles[category][:values].empty? %></td>
           <% else %>
             <td style="width: <%= category_cell_width %>; min-width: <%= category_cell_width %>;"></td>
           <% end %>

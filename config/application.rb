@@ -24,5 +24,6 @@ module MlbDraftHelper
     config.active_record.raise_in_transactional_callbacks = true
     config.autoload_paths += %W(#{config.root}/lib/stats/rb)
     config.eager_load_paths += ["#{Rails.root}/lib/stats/rb"]
+    config.active_record.schema_format = :sql
   end
 end

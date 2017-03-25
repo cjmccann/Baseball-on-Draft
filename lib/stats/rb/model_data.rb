@@ -109,6 +109,7 @@ class ModelData
         :w => 2,
         :l => 3,
         :sv => 4,
+        :hld => 5,
         :era => 6,
         :gs => 7,
         :ip => 9,

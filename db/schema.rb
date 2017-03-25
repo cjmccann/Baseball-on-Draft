@@ -11,7 +11,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170324015146) do
+ActiveRecord::Schema.define(version: 20170325060509) do
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -39,7 +40,7 @@ ActiveRecord::Schema.define(version: 20170324015146) do
     t.text     "drafted_player_ids_by_team"
   end
 
-  add_index "draft_helpers", ["league_id"], name: "index_draft_helpers_on_league_id"
+  add_index "draft_helpers", ["league_id"], name: "index_draft_helpers_on_league_id", using: :btree
 
   create_table "leagues", force: :cascade do |t|
     t.string   "name"
@@ -49,7 +50,7 @@ ActiveRecord::Schema.define(version: 20170324015146) do
     t.integer  "setting_manager_id"
   end
 
-  add_index "leagues", ["setting_manager_id"], name: "index_leagues_on_setting_manager_id"
+  add_index "leagues", ["setting_manager_id"], name: "index_leagues_on_setting_manager_id", using: :btree
 
   create_table "players", force: :cascade do |t|
     t.string   "name"
@@ -60,7 +61,7 @@ ActiveRecord::Schema.define(version: 20170324015146) do
     t.text     "static_stats"
   end
 
-  add_index "players", ["name", "player_type"], name: "index_players_on_name_and_player_type"
+  add_index "players", ["name", "player_type"], name: "index_players_on_name_and_player_type", using: :btree
 
   create_table "setting_managers", force: :cascade do |t|
     t.integer  "league_id"
@@ -110,6 +111,8 @@ ActiveRecord::Schema.define(version: 20170324015146) do
     t.boolean  "pit_war"
     t.boolean  "pit_dra"
     t.integer  "num_teams"
+    t.boolean  "pit_hld"
+    t.boolean  "bat_ops"
   end
 
   create_table "teams", force: :cascade do |t|
@@ -141,7 +144,7 @@ ActiveRecord::Schema.define(version: 20170324015146) do
     t.datetime "updated_at",                          null: false
   end
 
-  add_index "users", ["email"], name: "index_users_on_email", unique: true
-  add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
+  add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
 
 end

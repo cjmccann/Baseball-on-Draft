@@ -26,6 +26,7 @@ class DataManager < ActiveRecord::Base
     compute_weighted_means(pitchers)
 
     compute_quality_starts(pitchers)
+    compute_ops(batters)
 
     update_cumulative_stats
     set_initial_percentiles
@@ -389,6 +390,8 @@ class DataManager < ActiveRecord::Base
       if !(model_weights[:zips].nil?)
         return model_weights[model] + (model_weights[:zips] / 3)
        end
+    elsif category == :hld && model == :depthcharts
+      return 1.0
     end
 
     model_weights[model]
@@ -406,7 +409,7 @@ class DataManager < ActiveRecord::Base
 
         # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
         if player.player_type == "pit"
-          if player.position == "SP" && category == :sv
+          if player.position == "SP" && (category == :sv || category == :hld)
             next
           elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
             next
@@ -438,7 +441,7 @@ class DataManager < ActiveRecord::Base
       self.means[player.id].each do |category, value|
         # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
         if player.player_type == "pit"
-          if player.position == "SP" && category == :sv
+          if player.position == "SP" && (category == :sv || category == :hld)
             next
           elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
             next
@@ -472,7 +475,7 @@ class DataManager < ActiveRecord::Base
     means.each do |category, value|
       # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
       if player.player_type == "pit"
-        if player.position == "SP" && category == :sv
+        if player.position == "SP" && (category == :sv || category == :hld)
           next
         elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
           next
@@ -500,7 +503,7 @@ class DataManager < ActiveRecord::Base
     zscores.each do |category, value|
       # for pitching, in avg weighted mean don't include :sv for starters, :qs for relievers
       if player.player_type == "pit"
-        if player.position == "SP" && category == :sv
+        if player.position == "SP" && (category == :sv || category == :hld)
           next
         elsif player.position == "RP" && (category == :qs || category == :w || category == :l || category == :gs)
           next
@@ -622,6 +625,15 @@ class DataManager < ActiveRecord::Base
     players.each do |player|
       ensure_dynamic_stats_for_player(:means, player)
       player.compute_quality_starts(self.means[player.id])
+    end
+  end
+
+  def compute_ops(players)
+    players.each do |player|
+      ensure_dynamic_stats_for_player(:means, player)
+      means = self.means[player.id]
+
+      means[:ops] = (means[:obp] + means[:slg]).round(3)
     end
   end
 

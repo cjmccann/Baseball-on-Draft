@@ -89,7 +89,7 @@ class Player < ActiveRecord::Base
     # compute this current player's QS rate based on this assumption
     
     qs_rate = (1 - ((0.5 * means[:era]) / 4.5))
-    means[:qs] = (means[:gs] * qs_rate).round(3)
+    means[:qs] = (means[:gs] * qs_rate).round(2)
   end
 
   def is_valid?()
@@ -104,8 +104,6 @@ class Player < ActiveRecord::Base
         return has_min_for_category(:pa, min_pa)
       elsif (self.player_type == "pit")
         return has_min_for_category(:ip, min_ip)
-      else
-        binding.pry
       end
     end
 
