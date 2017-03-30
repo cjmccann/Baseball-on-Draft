@@ -409,7 +409,7 @@ class Team < ActiveRecord::Base
     end
 
     if pos == "2B" || pos == "SS"
-      return "MI" if self.batters_slots["MI"] > 0
+      return "MI" if self.batter_slots["MI"] > 0
     end
 
     if pos == "LF" || pos == "CF" || pos == "RF"

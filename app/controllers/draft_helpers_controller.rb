@@ -164,7 +164,7 @@ class DraftHelpersController < ApplicationController
 
     case params[:tableId]
     when 'availablePlayersCumulative'
-      sorted_obj = @draft_helper.data_manager.get_sorted_players_list
+      sorted_obj = @draft_helper.data_manager.get_sorted_players_list(@draft_helper.league.my_team)
       value_label = 'Cumulative % diff'
     when 'availablePlayersAbsolute'
       sorted_obj = @draft_helper.data_manager.get_sorted_players_list_absolute_percentiles

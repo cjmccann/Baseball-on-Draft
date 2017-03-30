@@ -550,4 +550,6 @@ ready = function() {
     }
 }
 
-document.addEventListener('turbolinks:load', ready);
+// document.addEventListener('turbolinks:load', ready);
+$(document).ready(ready);
+

@@ -88,14 +88,14 @@ class DataManager < ActiveRecord::Base
     set_positional_adjustments()
   end
 
-  def get_sorted_players_list(pos = nil)
+  def get_sorted_players_list(team, pos = nil)
       player_values = [ ]
       minmax = { :min => 0, :max => 0 }
 
       all_players.each do |player|
         unless is_drafted?(player)
           if pos.nil? || player.matches_position?(pos)
-            deltas_obj = self.league.my_team.get_target_percentile_deltas_with_new_player(player, minmax)
+            deltas_obj = team.get_target_percentile_deltas_with_new_player(player, minmax)
 
             player_values.push({ :value => deltas_obj[:deltas_magnitude].round(3), :id => player.id,
                                          :categories => deltas_obj[:deltas][player.player_type.to_sym],
