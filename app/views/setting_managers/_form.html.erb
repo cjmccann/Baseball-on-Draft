@@ -1,13 +1,14 @@
 <%= form_for @setting_manager do |manager_form| %>
-<div id="teamCount" style="float:left; margin: 10px 0 10px 0; width: 100%">
+<div id="teamCount" style="float:left; margin: 10px 0 10px 0; width: 100%; text-align:center;">
   <h3>Number of Teams</h3>
   <%= manager_form.select 'num_teams', (2..24).to_a.map(&:to_s), :selected => @setting_manager['num_teams'].to_s %>
 </div>
 
 <div id="settings" style="float:left; margin:0; width:100%;">
-  <div id="positionSettings" style="float:left; margin:0;">
+  <div id="positionSettings" style="float:left; margin:0; width:50%; text-align:center;">
   <h2>Positional Settings</h2>
-    <div id="hitterPositions" style="float:left; margin:20px; width:auto;">
+  <h3>Bench slots will be automatically added.</h3>
+    <div id="hitterPositions" style="float:left; margin:0px 10px; width:40%;">
       <h3>Hitters</h3>
       <table style="margin:auto;" >
           <tr>
@@ -27,7 +28,7 @@
       </table>
     </div>
 
-    <div id="pitcherPositions" style="float:left; margin:20px; width:auto">
+    <div id="pitcherPositions" style="float:left; margin:0px 10px; width:40%">
       <h3>Pitchers</h3>
       <table style="margin:auto;">
           <tr>
@@ -48,9 +49,9 @@
     </div>
   </div>
 
-  <div id="categorySettings" style="float:left; margin:0;">
+  <div id="categorySettings" style="float:left; margin:0; width:50%; text-align:center;">
     <h2>Category Settings</h2>
-    <div id="hitterCategories" style="float:left; margin:20px; width:auto;">
+    <div id="hitterCategories" style="float:left; margin:0px 10px; width:40%;">
       <h3>Hitters</h3>
       <table style="margin:auto;">
           <tr>
@@ -66,7 +67,7 @@
       </table>
     </div>
 
-    <div id="picherCategories" style="float:left; margin:20px; width:auto;">
+    <div id="picherCategories" style="float:left; margin:0px 10px; width:40%;">
       <h3>Pitchers</h3>
       <table style="margin:auto;">
           <tr>
@@ -84,8 +85,9 @@
   </div>
 </div>
 
-<div style="padding-bottom:25px;">
-  <%= manager_form.submit 'Update settings' %> <%= button_tag 'Cancel', :type => 'cancel', :name => 'cancel' %>
+<div style="padding-bottom:25px;text-align:center;">
+  <%= manager_form.submit 'Update settings', :class => "ui-button ui-widget ui-corner-all", :style => "font-size:20px;" %> 
+  <%= button_tag 'Cancel', :type => 'cancel', :name => 'cancel', :class => "ui-button ui-widget ui-corner-all", :style => "font-size:20px;" %>
 </div>
 <% end %>
 

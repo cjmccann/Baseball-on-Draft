@@ -11,6 +11,7 @@ Rails.application.config.assets.version = '1.0'
 # Rails.application.config.assets.precompile += %w( search.js )
 Rails.application.config.assets.precompile += %w( draft_helpers.css )
 Rails.application.config.assets.precompile += %w( draft_helpers.js )
+Rails.application.config.assets.precompile += %w( setting_managers.css )
 Rails.application.config.assets.precompile += %w( leagues.css )
 Rails.application.config.assets.precompile += %w( leagues.js)
 Rails.application.config.assets.precompile += %w( home.css )

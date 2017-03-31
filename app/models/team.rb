@@ -48,8 +48,13 @@ class Team < ActiveRecord::Base
     batter_positions_filled = { }
     pitcher_positions_filled = { }
 
+    slots = { "bat" => [ ], "pit" => [ ] }
+    bench_slots = { "bat" => [ ], "pit" => [ ] }
+
     self.batters.each do |slot, id|
       pos = slot.split('-')[0]
+
+      bench_slots["bat"].push(id) if pos == 'BN'
 
       batter_positions_filled[pos] = [] if batter_positions_filled[pos].nil?
       batter_positions_filled[pos].push(id)
@@ -58,11 +63,12 @@ class Team < ActiveRecord::Base
     self.pitchers.each do |slot, id|
       pos = slot.split('-')[0]
 
+      bench_slots["pit"].push(id) if pos == 'BN'
+
       pitcher_positions_filled[pos] = [] if pitcher_positions_filled[pos].nil?
       pitcher_positions_filled[pos].push(id)
     end
 
-    slots = { "bat" => [ ], "pit" => [ ] }
     initial_batter_slots.each do |pos, n|
       while (n > 0)
         if (!batter_positions_filled[pos].nil? && !batter_positions_filled[pos].empty?)
@@ -84,6 +90,12 @@ class Team < ActiveRecord::Base
         end
 
         n -= 1
+      end
+    end
+
+    bench_slots.each do |player_type, ids|
+      ids.each do |id|
+        slots[player_type].push( { position: 'BN', id: id } )
       end
     end
 
@@ -387,7 +399,7 @@ class Team < ActiveRecord::Base
     end
 
     self.batters[slot + "-" + index.to_s] = player.id
-    self.batter_slots[slot] -= 1
+    self.batter_slots[slot] -= 1 if slot != 'BN'
   end
 
   def register_pitcher_slot(player, slot)
@@ -398,7 +410,7 @@ class Team < ActiveRecord::Base
     end
 
     self.pitchers[slot + "-" + index.to_s] = player.id
-    self.pitcher_slots[slot] -= 1
+    self.pitcher_slots[slot] -= 1 if slot != 'BN'
   end
 
   def get_available_batter_slot(pos)
@@ -420,7 +432,7 @@ class Team < ActiveRecord::Base
       return "UTIL"
     end
 
-    return nil
+    return 'BN'
   end
 
   def get_available_pitcher_slot(pos)
@@ -430,7 +442,7 @@ class Team < ActiveRecord::Base
       return "P"
     end
 
-    return nil
+    return 'BN'
   end
 
   def remaining_positional_impact(pos)
