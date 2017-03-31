@@ -1,6 +1,6 @@
 <%= form_for @setting_manager do |manager_form| %>
 <div id="teamCount" style="float:left; margin: 10px 0 10px 0; width: 100%; text-align:center;">
-  <h3>Number of Teams</h3>
+  <h2>Number of Teams</h2>
   <%= manager_form.select 'num_teams', (2..24).to_a.map(&:to_s), :selected => @setting_manager['num_teams'].to_s %>
 </div>
 
@@ -11,11 +11,6 @@
     <div id="hitterPositions" style="float:left; margin:0px 10px; width:40%;">
       <h3>Hitters</h3>
       <table style="margin:auto;" >
-          <tr>
-            <th>Position</th>
-            <th>Count</th>
-          </tr>
-
           <% SettingManager.defaults[:batter_positions].keys.each do |position| %>
             <tr>
               <td><%= position.split('_')[1] %></td>
@@ -31,10 +26,6 @@
     <div id="pitcherPositions" style="float:left; margin:0px 10px; width:40%">
       <h3>Pitchers</h3>
       <table style="margin:auto;">
-          <tr>
-            <th>Position</th>
-            <th>Count</th>
-          </tr>
 
           <% SettingManager.defaults[:pitcher_positions].keys.each do |position| %>
             <tr>
@@ -54,10 +45,6 @@
     <div id="hitterCategories" style="float:left; margin:0px 10px; width:40%;">
       <h3>Hitters</h3>
       <table style="margin:auto;">
-          <tr>
-            <th>Category</th>
-          </tr>
-
           <% SettingManager.defaults[:batter_stats].keys.each do |category| %>
             <tr>
               <td><%= category.split('_')[1] %></td>
@@ -70,10 +57,6 @@
     <div id="picherCategories" style="float:left; margin:0px 10px; width:40%;">
       <h3>Pitchers</h3>
       <table style="margin:auto;">
-          <tr>
-            <th>Category</th>
-          </tr>
-
           <% SettingManager.defaults[:pitcher_stats].keys.each do |category| %>
             <tr>
               <td><%= category.split('_')[1] %></td>
